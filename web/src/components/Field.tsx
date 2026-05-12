@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface FieldProps {
@@ -19,11 +20,15 @@ export function Field({ label, hint, children, className }: FieldProps) {
   );
 }
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
-export function Input({ className, ...props }: InputProps) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { className, ...props },
+  ref
+) {
   return (
     <input
+      ref={ref}
       {...props}
       className={cn(
         "h-11 rounded-xl border border-border bg-surface px-3.5 text-sm text-text outline-none transition-colors placeholder:text-muted focus:border-brand/60",
@@ -31,13 +36,17 @@ export function Input({ className, ...props }: InputProps) {
       )}
     />
   );
-}
+});
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export function Textarea({ className, ...props }: TextareaProps) {
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { className, ...props },
+  ref
+) {
   return (
     <textarea
+      ref={ref}
       {...props}
       className={cn(
         "min-h-24 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text outline-none transition-colors placeholder:text-muted focus:border-brand/60",
@@ -45,13 +54,17 @@ export function Textarea({ className, ...props }: TextareaProps) {
       )}
     />
   );
-}
+});
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
 
-export function Select({ className, children, ...props }: SelectProps) {
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { className, children, ...props },
+  ref
+) {
   return (
     <select
+      ref={ref}
       {...props}
       className={cn(
         "h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition-colors focus:border-brand/60",
@@ -61,4 +74,4 @@ export function Select({ className, children, ...props }: SelectProps) {
       {children}
     </select>
   );
-}
+});

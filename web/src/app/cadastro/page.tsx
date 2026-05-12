@@ -118,7 +118,7 @@ function CadastroForm() {
                 <Input name="email" type="email" placeholder="seuemail@exemplo.com" required autoComplete="email" />
               </Field>
               <Field label="WhatsApp" hint="Para verificação por SMS">
-                <Input name="whatsapp" placeholder="(11) 99999-9999" required />
+                <MaskedInput mask="phone" name="whatsapp" placeholder="(11) 99999-9999" required />
               </Field>
               <Field label="Senha">
                 <div className="relative">
@@ -185,18 +185,11 @@ function CadastroForm() {
                   </Select>
                 </Field>
                 <Field label="CNPJ">
-                  <Input name="cnpj" placeholder="00.000.000/0000-00" required />
+                  <MaskedInput mask="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required />
                 </Field>
               </div>
 
-              <div className="grid grid-cols-[1fr_5rem] gap-3">
-                <Field label="Cidade">
-                  <Input name="city" placeholder="São Paulo" required />
-                </Field>
-                <Field label="UF">
-                  <Input name="state" placeholder="SP" maxLength={2} required className="uppercase" />
-                </Field>
-              </div>
+              <AddressFieldset namePrefix="address" />
 
               <Field label="Nome do responsável">
                 <Input name="ownerName" placeholder="Seu nome" required />
@@ -205,7 +198,7 @@ function CadastroForm() {
                 <Input name="email" type="email" placeholder="responsavel@estabelecimento.com" required autoComplete="email" />
               </Field>
               <Field label="WhatsApp do responsável">
-                <Input name="whatsapp" placeholder="(11) 99999-9999" required />
+                <MaskedInput mask="phone" name="whatsapp" placeholder="(11) 99999-9999" required />
               </Field>
               <Field label="Senha">
                 <div className="relative">

@@ -80,8 +80,19 @@ export async function signUpEstablishmentAction(formData: FormData) {
   const estabName = String(formData.get("estabName") ?? "");
   const estabType = String(formData.get("estabType") ?? "bar") as EstablishmentType;
   const cnpj = String(formData.get("cnpj") ?? "");
-  const city = String(formData.get("city") ?? "");
-  const state = String(formData.get("state") ?? "").toUpperCase().slice(0, 2);
+
+  // Endereço completo do AddressFieldset
+  const cep = String(formData.get("address_cep") ?? "");
+  const street = String(formData.get("address_street") ?? "");
+  const number = String(formData.get("address_number") ?? "");
+  const complement = String(formData.get("address_complement") ?? "");
+  const district = String(formData.get("address_district") ?? "");
+  const city = String(formData.get("address_city") ?? "");
+  const state = String(formData.get("address_state") ?? "").toUpperCase().slice(0, 2);
+  const fullAddress = [
+    street && `${street}, ${number}${complement ? ` — ${complement}` : ""}`,
+    district,
+  ].filter(Boolean).join(" — ") || "(a completar no painel)";
 
   if (isMockMode()) redirect("/estabelecimento");
 
@@ -122,7 +133,8 @@ export async function signUpEstablishmentAction(formData: FormData) {
       cnpj,
       city,
       state,
-      address: "(a completar no painel)",
+      cep,
+      address: fullAddress,
       whatsapp,
       tags: [],
     });

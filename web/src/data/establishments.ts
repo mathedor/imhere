@@ -73,6 +73,26 @@ export const momentoByEstablishment: Record<string, MomentoPost[]> = {
       views: 188,
     },
   ],
+  "bravo-mar-beach-club": [
+    {
+      id: "mt-5",
+      establishmentId: "bravo-mar-beach-club",
+      imageUrl: "https://images.unsplash.com/photo-1530541930197-ff16ac917b0e?w=800&q=80",
+      caption: "Pôr do sol no Bravo Mar 🌅",
+      postedAt: "18:42",
+      expiresInMin: 215,
+      views: 312,
+    },
+    {
+      id: "mt-6",
+      establishmentId: "bravo-mar-beach-club",
+      imageUrl: "https://images.unsplash.com/photo-1574391884720-bbc3740c59d1?w=800&q=80",
+      caption: "DJ Lara comandando a pista 🎧",
+      postedAt: "21:08",
+      expiresInMin: 175,
+      views: 184,
+    },
+  ],
 };
 
 export const establishments: Establishment[] = [
@@ -237,6 +257,24 @@ export const establishments: Establishment[] = [
     priceLevel: 3,
     openNow: true,
     instagram: "@lume.rooftop",
+  },
+  {
+    id: "bravo-mar-beach-club",
+    name: "Bravo Mar Beach Club",
+    type: "lounge",
+    city: "Itajaí",
+    state: "SC",
+    address: "Av. José Medeiros Vieira, 100 — Praia Brava",
+    distanceKm: 0.8,
+    rating: 4.8,
+    reviewCount: 612,
+    cover: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
+    presentNow: 248,
+    presentByGender: { male: 124, female: 118, other: 6 },
+    tags: ["Beach Club", "Pôr do sol", "DJ ao vivo", "Drinks autorais"],
+    priceLevel: 4,
+    openNow: true,
+    instagram: "@bravomar.itajai",
   },
   {
     id: "horto-cafe",

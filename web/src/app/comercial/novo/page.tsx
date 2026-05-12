@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Building2, Camera, Save } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { AddressFieldset } from "@/components/AddressFieldset";
 import { Field, Input, Select, Textarea } from "@/components/Field";
+import { MaskedInput } from "@/components/MaskedInput";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { NAV_COMERCIAL } from "../page";
 
@@ -48,7 +50,7 @@ export default function NovoEstabelecimentoPage() {
               <Input required placeholder="Ex: Lume Rooftop" />
             </Field>
             <Field label="CNPJ">
-              <Input placeholder="00.000.000/0000-00" required />
+              <MaskedInput mask="cnpj" placeholder="00.000.000/0000-00" required />
             </Field>
             <Field label="Razão social">
               <Input placeholder="Lume Bar & Restaurante LTDA" />
@@ -66,17 +68,18 @@ export default function NovoEstabelecimentoPage() {
             <Field label="Capacidade">
               <Input type="number" placeholder="200" />
             </Field>
-            <Field label="CEP">
-              <Input placeholder="00000-000" required />
-            </Field>
-            <Field label="Cidade / UF" className="md:col-span-1">
-              <Input placeholder="São Paulo / SP" required />
-            </Field>
-            <Field label="Endereço completo" className="md:col-span-2">
-              <Input placeholder="Rua, número, bairro" required />
-            </Field>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-border bg-surface-2/40 p-4">
+            <h3 className="mb-3 text-[0.7rem] font-bold uppercase tracking-widest text-muted">
+              Endereço
+            </h3>
+            <AddressFieldset namePrefix="address" />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="WhatsApp">
-              <Input placeholder="(11) 99999-9999" required />
+              <MaskedInput mask="phone" placeholder="(11) 99999-9999" required />
             </Field>
             <Field label="Instagram">
               <Input placeholder="@instagram" />

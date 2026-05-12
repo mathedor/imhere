@@ -64,9 +64,15 @@ export function EstablishmentCard({ establishment: e, index, onClick }: Props) {
           )}
         </div>
 
-        <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-pill bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-          <Star className="size-3.5 fill-warn text-warn" />
-          {e.rating.toFixed(1)}
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
+          <div className="flex items-center gap-1.5 rounded-pill bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+            <Star className="size-3.5 fill-warn text-warn" />
+            {e.rating.toFixed(1)}
+          </div>
+          <div className="flex items-center gap-1.5 rounded-pill bg-brand/85 px-2.5 py-1 text-[0.7rem] font-bold text-white shadow-glow backdrop-blur-md">
+            <MapPin className="size-3" />
+            {formatDistance(e.distanceKm)}
+          </div>
         </div>
 
         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">

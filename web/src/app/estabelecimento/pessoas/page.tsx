@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gift, MessageCircle, MoreVertical, Search, Send, Sparkles, X } from "lucide-react";
+import { Gift, MessageCircle, MoreVertical, Search, Send, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
@@ -83,17 +84,22 @@ export default function PessoasPage() {
               </p>
               <p className="mt-1 text-[0.65rem] text-muted">chegou {u.checkedInAt}</p>
             </div>
+            <Link
+              href={`/estabelecimento/usuarios/${u.id}`}
+              className="grid size-9 shrink-0 place-items-center rounded-xl border border-border text-text-soft hover:border-brand/40 hover:text-text"
+              title="Ver perfil 360"
+            >
+              <User className="size-4" />
+            </Link>
             <motion.button
               whileTap={{ scale: 0.92 }}
               whileHover={{ y: -1 }}
               onClick={() => setOpen(u)}
               className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-strong to-brand text-white shadow-glow"
+              title="Enviar cortesia"
             >
               <Gift className="size-4" />
             </motion.button>
-            <button className="grid size-9 shrink-0 place-items-center rounded-xl border border-border text-muted hover:text-text">
-              <MoreVertical className="size-4" />
-            </button>
           </motion.div>
         ))}
       </div>

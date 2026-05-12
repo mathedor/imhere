@@ -13,7 +13,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { DateInput } from "@/components/DateInput";
 import { Field, Input, Select, Textarea } from "@/components/Field";
+import { MaskedInput } from "@/components/MaskedInput";
 import { cn } from "@/lib/utils";
 
 const initialPhotos = [
@@ -124,13 +126,16 @@ export default function PerfilPage() {
             <Input type="email" defaultValue="mateus@exemplo.com" />
           </Field>
           <Field label="WhatsApp">
-            <Input defaultValue="(48) 99999-1234" />
+            <MaskedInput mask="phone" defaultValue="(48) 99999-1234" />
+          </Field>
+          <Field label="CPF">
+            <MaskedInput mask="cpf" placeholder="000.000.000-00" />
           </Field>
           <Field label="Instagram">
             <Input defaultValue="@mateusxh" />
           </Field>
           <Field label="Data de nascimento">
-            <Input type="date" defaultValue="1994-03-12" />
+            <DateInput defaultValue="1994-03-12" />
           </Field>
           <Field label="Gênero">
             <Select defaultValue="male">

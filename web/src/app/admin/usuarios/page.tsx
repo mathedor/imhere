@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Edit3, MoreVertical, Search, Trash2, UserPlus } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
@@ -103,6 +104,7 @@ const columns: Column<AppUser>[] = [
 ];
 
 export default function UsuariosPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const filtered = users.filter(
     (u) => !q || u.name.toLowerCase().includes(q.toLowerCase()) || u.profession.toLowerCase().includes(q.toLowerCase())
@@ -135,7 +137,13 @@ export default function UsuariosPage() {
         </motion.button>
       </div>
 
-      <DataTable columns={columns} data={filtered} rowKey={(u) => u.id} pageSize={10} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        rowKey={(u) => u.id}
+        pageSize={10}
+        onRowClick={(u) => router.push(`/admin/usuarios/${u.id}`)}
+      />
     </PanelLayout>
   );
 }

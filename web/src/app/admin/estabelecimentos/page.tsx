@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Building2, Edit3, MoreVertical, Plus, Search, Star, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
@@ -99,6 +100,7 @@ const columns: Column<(typeof establishments)[number]>[] = [
 ];
 
 export default function EstabelecimentosAdminPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const filtered = establishments.filter(
     (e) => !q || e.name.toLowerCase().includes(q.toLowerCase()) || e.city.toLowerCase().includes(q.toLowerCase())
@@ -159,7 +161,13 @@ export default function EstabelecimentosAdminPage() {
         </motion.button>
       </div>
 
-      <DataTable columns={columns} data={filtered} rowKey={(e) => e.id} pageSize={10} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        rowKey={(e) => e.id}
+        pageSize={10}
+        onRowClick={(e) => router.push(`/admin/estabelecimentos/${e.id}`)}
+      />
     </PanelLayout>
   );
 }
