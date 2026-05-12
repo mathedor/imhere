@@ -185,6 +185,41 @@ export async function getInteractionsByDay(days = 30): Promise<DailyPoint[]> {
   return bucketsToSeries(buckets);
 }
 
+export interface SalesKPIs {
+  mrrCents: number;
+  arrCents: number;
+  churnPct: number;
+  delinquentPct: number;
+  activeCount: number;
+  canceledCount: number;
+}
+
+export async function getSalesKPIs(): Promise<SalesKPIs> {
+  if (isMockMode()) {
+    return { mrrCents: 18_400_000, arrCents: 220_800_000, churnPct: 3.2, delinquentPct: 1.1, activeCount: 1284, canceledCount: 42 };
+  }
+  const sb = await supabaseServer();
+  const { data } = await sb.from("subscriptions").select("amount_cents, status");
+  const rows = (data ?? []) as Array<{ amount_cents: number; status: string }>;
+
+  const active = rows.filter((r) => r.status === "active");
+  const canceled = rows.filter((r) => r.status === "canceled");
+  const delinquent = rows.filter((r) => r.status === "delinquent");
+  const mrrCents = active.reduce((a, r) => a + (r.amount_cents ?? 0), 0);
+  const totalEverActive = active.length + canceled.length;
+  const churnPct = totalEverActive > 0 ? (canceled.length / totalEverActive) * 100 : 0;
+  const delinquentPct = rows.length > 0 ? (delinquent.length / rows.length) * 100 : 0;
+
+  return {
+    mrrCents,
+    arrCents: mrrCents * 12,
+    churnPct: Number(churnPct.toFixed(1)),
+    delinquentPct: Number(delinquentPct.toFixed(1)),
+    activeCount: active.length,
+    canceledCount: canceled.length,
+  };
+}
+
 export interface RecentSubscription {
   id: string;
   user: string;
@@ -195,7 +230,7 @@ export interface RecentSubscription {
   date: string;
 }
 
-export async function listRecentSubscriptions(): Promise<RecentSubscription[]> {
+export async function listRecentSubscriptions(limit = 10): Promise<RecentSubscription[]> {
   if (isMockMode()) {
     return [];
   }
@@ -205,7 +240,7 @@ export async function listRecentSubscriptions(): Promise<RecentSubscription[]> {
     .from("subscriptions")
     .select("id, status, amount_cents, method, created_at, profiles(name), plans(name)")
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(limit);
 
   return ((data ?? []) as unknown as Array<{
     id: string;

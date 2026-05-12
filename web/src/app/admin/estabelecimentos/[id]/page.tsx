@@ -17,9 +17,9 @@ import {
   Search,
   Star,
   TrendingUp,
-  Trash2,
   UserCheck,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -209,13 +209,21 @@ export default function AdminEstabelecimentoPage() {
               </div>
 
               <div className="mt-4 flex gap-2">
-                <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-2 py-2 text-xs font-bold text-text hover:border-brand/40">
+                <Link
+                  href={`/admin/estabelecimentos/${place.id}/editar`}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-2 py-2 text-xs font-bold text-text hover:border-brand/40"
+                >
                   <Edit3 className="size-3.5" />
                   Editar
-                </button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-brand hover:border-brand">
-                  <Trash2 className="size-3.5" />
-                </button>
+                </Link>
+                <Link
+                  href={`/admin/estabelecimentos/${place.id}/cardapio`}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-brand/40 bg-brand/10 px-3 py-2 text-xs font-bold text-brand hover:border-brand"
+                  title="Editar cardápio"
+                >
+                  <UtensilsCrossed className="size-3.5" />
+                  Cardápio
+                </Link>
               </div>
             </div>
           </div>

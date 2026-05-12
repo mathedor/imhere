@@ -29,6 +29,8 @@ export interface MenuItem {
 interface Props {
   items: MenuItem[];
   publicSlug?: string;
+  /** Quando preenchido (admin), envia explicit establishmentId nas forms */
+  establishmentId?: string;
 }
 
 function formatPrice(cents: number | null) {
@@ -36,7 +38,7 @@ function formatPrice(cents: number | null) {
   return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 }
 
-export function CardapioEditor({ items, publicSlug }: Props) {
+export function CardapioEditor({ items, publicSlug, establishmentId }: Props) {
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -97,6 +99,7 @@ export function CardapioEditor({ items, publicSlug }: Props) {
                     <form action={toggleMenuItemAction}>
                       <input type="hidden" name="id" value={it.id} />
                       <input type="hidden" name="available" value={String(it.available)} />
+                      {establishmentId && <input type="hidden" name="establishmentId" value={establishmentId} />}
                       <button
                         type="submit"
                         className={cn(
@@ -115,6 +118,7 @@ export function CardapioEditor({ items, publicSlug }: Props) {
                     </button>
                     <form action={deleteMenuItemAction}>
                       <input type="hidden" name="id" value={it.id} />
+                      {establishmentId && <input type="hidden" name="establishmentId" value={establishmentId} />}
                       <button
                         type="submit"
                         onClick={(e) => {
@@ -147,6 +151,7 @@ export function CardapioEditor({ items, publicSlug }: Props) {
         {(creating || editing) && (
           <ItemDrawer
             item={editing}
+            establishmentId={establishmentId}
             onClose={() => {
               setCreating(false);
               setEditing(null);
@@ -158,7 +163,7 @@ export function CardapioEditor({ items, publicSlug }: Props) {
   );
 }
 
-function ItemDrawer({ item, onClose }: { item: MenuItem | null; onClose: () => void }) {
+function ItemDrawer({ item, establishmentId, onClose }: { item: MenuItem | null; establishmentId?: string; onClose: () => void }) {
   const isEdit = !!item;
   const [imageUrl, setImageUrl] = useState<string | null>(item?.image_url ?? null);
   const [loading, setLoading] = useState(false);
@@ -202,6 +207,7 @@ function ItemDrawer({ item, onClose }: { item: MenuItem | null; onClose: () => v
         >
           {isEdit && item && <input type="hidden" name="id" value={item.id} />}
           {imageUrl && <input type="hidden" name="imageUrl" value={imageUrl} />}
+          {establishmentId && <input type="hidden" name="establishmentId" value={establishmentId} />}
 
           <div className="flex gap-3">
             <PhotoUpload
