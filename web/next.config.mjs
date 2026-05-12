@@ -9,6 +9,7 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  outputFileTracingRoot: __dirname,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
