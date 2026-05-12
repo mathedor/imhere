@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn-integrity
+
+# Next.js
+web/.next/
+web/out/
+web/.vercel
+web/next-env.d.ts
+web/*.tsbuildinfo
+
+# Expo
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/.expo-shared/
+
+# Native builds
+mobile/ios/
+mobile/android/
+
+# Env files (secrets)
+.env
+.env.local
+.env*.local
+*.env.local
+
+# Efí certificate
+*.p12
+.efi-cert*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Misc
+*.swp
+*.swo
+*.tsbuildinfo
+
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Vercel
+.vercel
