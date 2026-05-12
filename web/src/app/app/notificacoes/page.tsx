@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Bell, CheckCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { PushOptIn } from "@/components/PushOptIn";
 import { KIND_META, mockNotifications } from "@/data/notifications";
 import { markAllNotificationsReadAction } from "@/lib/actions/notifications";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,10 @@ export default function NotificacoesPage() {
           </form>
         )}
       </header>
+
+      <div className="mb-5">
+        <PushOptIn />
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {(
