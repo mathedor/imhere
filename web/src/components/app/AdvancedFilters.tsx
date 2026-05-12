@@ -106,7 +106,7 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
         )}
       >
         {unlocked ? <Filter className="size-4" /> : <Crown className="size-4 text-warn" />}
-        <span className="hidden sm:inline">Filtros</span>
+        <span>Filtros</span>
         {!isPremium && creditUnlocked && (
           <span className="rounded-pill bg-success/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-success">
             {hoursLeft()}h
@@ -143,55 +143,71 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
           >
             <header className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="grid size-9 place-items-center rounded-xl bg-brand/15 text-brand">
-                  <Filter className="size-4" />
+                <div className={cn(
+                  "grid size-9 place-items-center rounded-xl",
+                  unlocked ? "bg-brand/15 text-brand" : "bg-warn/15 text-warn"
+                )}>
+                  {unlocked ? <Filter className="size-4" /> : <Crown className="size-4" />}
                 </div>
                 <div>
                   <h3 className="text-base font-black text-text">Filtros avançados</h3>
-                  <p className="text-[0.65rem] text-text-soft">Refine quem você quer encontrar</p>
+                  <p className="text-[0.65rem] text-text-soft">
+                    {unlocked ? "Refine quem você quer encontrar" : "Recurso premium · disponível por créditos ou VIP"}
+                  </p>
                 </div>
-                {isPremium && (
-                  <span className="rounded-pill bg-warn/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-warn">
-                    VIP
-                  </span>
-                )}
-                {!isPremium && creditUnlocked && (
-                  <span className="rounded-pill bg-success/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-success">
-                    {hoursLeft()}h
-                  </span>
-                )}
               </div>
               <button onClick={() => setOpen(false)} className="grid size-9 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <X className="size-4" />
               </button>
             </header>
 
-            {!unlocked && (
-              <div className="mb-4 rounded-xl border border-warn/30 bg-warn/10 p-3 text-center">
-                <Lock className="mx-auto mb-1 size-5 text-warn" />
-                <p className="text-xs font-bold text-text">Recurso Premium / VIP</p>
-                <p className="mt-0.5 text-[0.65rem] text-text-soft">
-                  Filtre por gênero, idade e disponibilidade real
-                </p>
-                <div className="mt-2 flex flex-col gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmOpen(true)}
-                    className="rounded-pill bg-gradient-to-r from-warn to-brand px-3 py-1.5 text-[0.7rem] font-bold text-white shadow-glow"
-                  >
-                    Liberar 24h por {FILTERS_COST} 🪙
-                  </button>
-                  <Link
-                    href="/app/planos"
-                    className="text-[0.65rem] font-bold text-text-soft hover:text-text"
-                  >
-                    ou assine VIP →
-                  </Link>
+            {!unlocked ? (
+              <div className="flex flex-col gap-4 py-2">
+                <div className="rounded-2xl border border-warn/30 bg-warn/10 p-5 text-center">
+                  <div className="mx-auto mb-3 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-warn to-brand text-white shadow-glow">
+                    <Lock className="size-6" />
+                  </div>
+                  <p className="text-base font-black text-text">Filtre quem você quer encontrar</p>
+                  <p className="mt-1 text-xs text-text-soft">
+                    Filtrar por gênero, faixa de idade e ver só lugares com pessoas abertas a conversa é
+                    um recurso pago.
+                  </p>
+                  <ul className="mt-4 flex flex-col gap-2 text-left text-xs text-text-soft">
+                    <li className="flex items-center gap-2">
+                      <span className="size-1.5 rounded-full bg-brand" />
+                      Filtre por gênero (homem, mulher, outros)
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="size-1.5 rounded-full bg-brand" />
+                      Defina faixa de idade (18 a 80)
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="size-1.5 rounded-full bg-brand" />
+                      Veja só lugares com gente disponível
+                    </li>
+                  </ul>
                 </div>
-              </div>
-            )}
 
-            <div className={cn("flex flex-col gap-4", !unlocked && "pointer-events-none opacity-40")}>
+                <button
+                  type="button"
+                  onClick={() => setConfirmOpen(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-warn via-brand to-brand-strong px-4 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-glow"
+                >
+                  <Sparkles className="size-4" />
+                  Liberar 24h por {FILTERS_COST} 🪙
+                </button>
+
+                <Link
+                  href="/app/planos"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-warn/30 bg-warn/5 px-4 py-3 text-sm font-bold text-warn hover:bg-warn/10"
+                >
+                  <Crown className="size-4" />
+                  ou assine o plano VIP →
+                </Link>
+              </div>
+            ) : (
+            <div className="flex flex-col gap-4">
               <div>
                 <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted">
                   Gênero
@@ -267,22 +283,23 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
               >
                 Limpar filtros
               </button>
-            </div>
 
-            <div className="mt-5 flex justify-end gap-2 border-t border-border pt-4">
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-pill border border-border bg-surface-2 px-4 py-2 text-xs font-bold text-text-soft hover:text-text"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-xs font-bold text-white shadow-glow"
-              >
-                Aplicar
-              </button>
+              <div className="mt-3 flex justify-end gap-2 border-t border-border pt-4">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="rounded-pill border border-border bg-surface-2 px-4 py-2 text-xs font-bold text-text-soft hover:text-text"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-xs font-bold text-white shadow-glow"
+                >
+                  Aplicar
+                </button>
+              </div>
             </div>
+            )}
           </motion.div>
           </motion.div>
         )}
