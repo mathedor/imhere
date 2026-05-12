@@ -445,6 +445,129 @@ export interface CompetitorRow {
   presentNow: number;
 }
 
+// ============================================================
+// Funil de aquisição (cadastros → check-in → conversa → premium)
+// ============================================================
+
+export interface FunnelStage {
+  key: string;
+  label: string;
+  count: number;
+  pctOfPrev: number;
+  pctOfTotal: number;
+}
+
+export async function getAcquisitionFunnel(period: Period = "30d"): Promise<FunnelStage[]> {
+  const { start, end } = resolveRange(period);
+
+  if (isMockMode()) {
+    const stages = [
+      { key: "signup", label: "Cadastros", count: 540 },
+      { key: "first_checkin", label: "Fez 1º check-in", count: 342 },
+      { key: "first_message", label: "Enviou 1ª mensagem", count: 198 },
+      { key: "first_contact_accepted", label: "1ª conversa aceita", count: 124 },
+      { key: "premium", label: "Virou premium/VIP", count: 38 },
+    ];
+    return enrichFunnel(stages);
+  }
+
+  return safe(
+    async () => {
+      const sb = await supabaseServer();
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+
+      const [signupRes, checkinRes, msgRes, contactsRes, subsRes] = await Promise.all([
+        sb.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", startIso).lte("created_at", endIso).eq("role", "user"),
+        sb.from("checkins").select("profile_id").gte("checked_in_at", startIso).lte("checked_in_at", endIso).limit(50000),
+        sb.from("messages").select("sender_id").gte("created_at", startIso).lte("created_at", endIso).limit(50000),
+        sb.from("contact_requests").select("from_profile_id, status").gte("created_at", startIso).lte("created_at", endIso).eq("status", "accepted").limit(50000),
+        sb.from("subscriptions").select("profile_id").gte("created_at", startIso).lte("created_at", endIso).limit(50000),
+      ]);
+
+      const signups = signupRes.count ?? 0;
+      const checkedIn = new Set((checkinRes.data ?? []).map((r) => (r as { profile_id: string }).profile_id)).size;
+      const messaged = new Set((msgRes.data ?? []).map((r) => (r as { sender_id: string }).sender_id)).size;
+      const accepted = new Set((contactsRes.data ?? []).map((r) => (r as { from_profile_id: string }).from_profile_id)).size;
+      const premium = new Set((subsRes.data ?? []).map((r) => (r as { profile_id: string }).profile_id)).size;
+
+      const stages = [
+        { key: "signup", label: "Cadastros", count: signups },
+        { key: "first_checkin", label: "Fez 1º check-in", count: checkedIn },
+        { key: "first_message", label: "Enviou 1ª mensagem", count: messaged },
+        { key: "first_contact_accepted", label: "1ª conversa aceita", count: accepted },
+        { key: "premium", label: "Virou premium/VIP", count: premium },
+      ];
+      return enrichFunnel(stages);
+    },
+    [],
+    "getAcquisitionFunnel"
+  );
+}
+
+function enrichFunnel(stages: Array<{ key: string; label: string; count: number }>): FunnelStage[] {
+  const total = stages[0]?.count ?? 0;
+  return stages.map((s, i) => ({
+    ...s,
+    pctOfPrev: i === 0 ? 100 : stages[i - 1].count > 0 ? (s.count / stages[i - 1].count) * 100 : 0,
+    pctOfTotal: total > 0 ? (s.count / total) * 100 : 0,
+  }));
+}
+
+// ============================================================
+// Moderation: relatórios pendentes
+// ============================================================
+
+export interface ModerationReportRow {
+  id: string;
+  reporter_id: string | null;
+  reportedProfile: { id: string; name: string | null } | null;
+  category: string;
+  description: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export async function listPendingReports(limit = 50): Promise<ModerationReportRow[]> {
+  if (isMockMode()) return [];
+  return safe(
+    async () => {
+      const sb = await supabaseServer();
+      const { data, error } = await sb
+        .from("moderation_reports")
+        .select("id, reporter_id, reported_profile_id, category, description, status, created_at, profiles!reported_profile_id(id, name)")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Array<{
+        id: string;
+        reporter_id: string | null;
+        reported_profile_id: string | null;
+        category: string;
+        description: string | null;
+        status: string;
+        created_at: string;
+        profiles: { id: string; name: string | null } | null;
+      }>).map((r) => ({
+        id: r.id,
+        reporter_id: r.reporter_id,
+        reportedProfile: r.profiles,
+        category: r.category,
+        description: r.description,
+        status: r.status,
+        createdAt: r.created_at,
+      }));
+    },
+    [],
+    "listPendingReports"
+  );
+}
+
+// ============================================================
+// Competitor (já existia)
+// ============================================================
+
 export async function getCompetitorReport(targetEstabId: string): Promise<CompetitorRow[]> {
   if (isMockMode()) {
     return [

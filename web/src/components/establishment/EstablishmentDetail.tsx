@@ -17,9 +17,18 @@ interface Props {
   present: AppUser[];
   hasMomento: boolean;
   hasMenu: boolean;
+  iAmCheckedInHere?: boolean;
+  codeOfConductAccepted?: boolean;
 }
 
-export function EstablishmentDetail({ place, present, hasMomento, hasMenu }: Props) {
+export function EstablishmentDetail({
+  place,
+  present,
+  hasMomento,
+  hasMenu,
+  iAmCheckedInHere = false,
+  codeOfConductAccepted = false,
+}: Props) {
   const router = useRouter();
 
   function openUser(uid: string) {
@@ -149,7 +158,12 @@ export function EstablishmentDetail({ place, present, hasMomento, hasMenu }: Pro
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-[1.4fr,1fr] md:items-stretch">
           <PresenceStats place={place} />
-          <CheckInButton establishmentName={place.name} />
+          <CheckInButton
+            establishmentId={place.id}
+            establishmentName={place.name}
+            initialCheckedIn={iAmCheckedInHere}
+            codeOfConductAccepted={codeOfConductAccepted}
+          />
         </section>
 
         <section>

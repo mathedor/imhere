@@ -1,120 +1,105 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { AlertTriangle, Eye, Shield, ShieldOff, X } from "lucide-react";
-import Image from "next/image";
+import { AlertTriangle, Check, ShieldAlert, ShieldCheck, X } from "lucide-react";
 import Link from "next/link";
-import { DataTable, type Column } from "@/components/panel/DataTable";
-import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
-import { KpiCard } from "@/components/panel/KpiCard";
+import { ModerationActions } from "@/components/admin/ModerationActions";
+import { listPendingReports } from "@/lib/db/admin-reports";
 
-interface ModLog {
-  id: string;
-  userId: string;
-  userName: string;
-  userPhoto: string;
-  type: "blocked" | "warning";
-  matched: string;
-  body: string;
-  conversationId: string;
-  createdAt: string;
+export const dynamic = "force-dynamic";
+
+const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
+  harassment: { label: "Assédio", color: "#ef2c39" },
+  spam: { label: "Spam / Golpe", color: "#f59e0b" },
+  fake: { label: "Perfil falso", color: "#a855f7" },
+  offensive: { label: "Ofensa", color: "#ef2c39" },
+  safety: { label: "Risco real", color: "#dc2626" },
+  other: { label: "Outro", color: "#6b6b75" },
+};
+
+function fmtTimeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "agora";
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
 }
 
-const LOGS: ModLog[] = [
-  { id: "ml1", userId: "u-mari", userName: "Mariana Costa", userPhoto: "https://i.pravatar.cc/100?img=47", type: "blocked", matched: "merda", body: "Que merda esse drink, refazer", conversationId: "conv-mari", createdAt: "Hoje · 22:14" },
-  { id: "ml2", userId: "u-lucas", userName: "Lucas Andrade", userPhoto: "https://i.pravatar.cc/100?img=12", type: "warning", matched: "droga", body: "Tem alguma droga nesse drink?", conversationId: "conv-lucas", createdAt: "Ontem · 21:08" },
-  { id: "ml3", userId: "u-rafa", userName: "Rafael Mendes", userPhoto: "https://i.pravatar.cc/100?img=33", type: "blocked", matched: "idiota", body: "Que cara idiota, tava reclamando", conversationId: "conv-rafa", createdAt: "2026-05-10" },
-];
+export default async function ModeracaoPage() {
+  const reports = await listPendingReports(50);
 
-const columns: Column<ModLog>[] = [
-  {
-    key: "user",
-    label: "Usuário",
-    sortable: true,
-    accessor: (r) => r.userName,
-    render: (r) => (
-      <Link href={`/admin/usuarios/${r.userId}`} className="flex items-center gap-3 hover:opacity-80">
-        <div className="relative size-9 overflow-hidden rounded-full">
-          <Image src={r.userPhoto} alt={r.userName} fill sizes="36px" className="object-cover" />
-        </div>
-        <span className="font-bold text-text">{r.userName}</span>
-      </Link>
-    ),
-  },
-  {
-    key: "type",
-    label: "Tipo",
-    sortable: true,
-    render: (r) =>
-      r.type === "blocked" ? (
-        <span className="flex items-center gap-1 rounded-pill bg-brand/15 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-brand">
-          <X className="size-3" />
-          Bloqueada
-        </span>
-      ) : (
-        <span className="flex items-center gap-1 rounded-pill bg-warn/15 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-warn">
-          <AlertTriangle className="size-3" />
-          Aviso
-        </span>
-      ),
-  },
-  { key: "matched", label: "Termo", sortable: true, render: (r) => <code className="rounded bg-surface-2 px-1.5 py-0.5 text-[0.7rem] text-brand">{r.matched}</code> },
-  { key: "body", label: "Conteúdo", render: (r) => <span className="text-xs text-text-soft line-clamp-1">{r.body}</span> },
-  { key: "createdAt", label: "Quando", sortable: true },
-  {
-    key: "actions",
-    label: "Ações",
-    align: "right",
-    render: (r) => (
-      <Link
-        href={`/admin/usuarios/${r.userId}`}
-        className="inline-flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand hover:bg-brand hover:text-white"
-      >
-        <Eye className="size-3" />
-        Ver
-      </Link>
-    ),
-  },
-];
-
-export default function ModeracaoPage() {
   return (
     <>
-      <header className="mb-6">
-        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Moderação</h1>
-        <p className="mt-1 text-sm text-text-soft">Mensagens bloqueadas, avisos e reincidências</p>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Moderação</h1>
+          <p className="mt-1 text-sm text-text-soft">
+            {reports.length} denúncia{reports.length !== 1 ? "s" : ""} pendente
+            {reports.length !== 1 ? "s" : ""} · revise rapidamente
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand/15 px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-widest text-brand">
+          <ShieldAlert className="size-3.5" />
+          Fila ao vivo
+        </span>
       </header>
-      <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard icon={ShieldOff} label="Bloqueios 30d" value="312" delta={{ value: 12, sign: "down" }} color="#ef2c39" index={0} />
-        <KpiCard icon={AlertTriangle} label="Avisos 30d" value="48" color="#f59e0b" index={1} />
-        <KpiCard icon={Shield} label="Banimentos" value="3" color="#a855f7" index={2} />
-        <KpiCard icon={Shield} label="Taxa de re-incidência" value="14%" color="#3b82f6" index={3} />
-      </section>
 
-      <div className="mb-5 flex items-center justify-end">
-        <DateRangeFilter />
-      </div>
+      {reports.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-success/30 bg-success/5 py-16 text-center">
+          <ShieldCheck className="mx-auto size-12 text-success" />
+          <p className="mt-4 text-base font-bold text-text">Nenhuma denúncia pendente</p>
+          <p className="mt-1 text-xs text-text-soft">Comunidade limpinha · bom trabalho.</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {reports.map((r) => {
+            const cat = CATEGORY_LABELS[r.category] ?? CATEGORY_LABELS.other;
+            return (
+              <li
+                key={r.id}
+                className="rounded-2xl border border-border bg-surface p-4"
+              >
+                <div className="mb-3 flex items-start gap-3">
+                  <div
+                    className="grid size-10 shrink-0 place-items-center rounded-xl"
+                    style={{ background: `${cat.color}25`, color: cat.color }}
+                  >
+                    <AlertTriangle className="size-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="rounded-pill px-2 py-0.5 text-[0.6rem] font-black uppercase tracking-wider"
+                        style={{ background: `${cat.color}25`, color: cat.color }}
+                      >
+                        {cat.label}
+                      </span>
+                      <span className="text-[0.65rem] text-muted">{fmtTimeAgo(r.createdAt)} atrás</span>
+                    </div>
+                    {r.reportedProfile && (
+                      <p className="mt-1 text-sm">
+                        <span className="text-text-soft">Denunciado: </span>
+                        <Link
+                          href={`/admin/usuarios/${r.reportedProfile.id}`}
+                          className="font-bold text-text hover:text-brand hover:underline"
+                        >
+                          {r.reportedProfile.name ?? "—"}
+                        </Link>
+                      </p>
+                    )}
+                    {r.description && (
+                      <p className="mt-1.5 rounded-xl bg-surface-2 px-3 py-2 text-xs text-text-soft">
+                        {r.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-      <DataTable columns={columns} data={LOGS} rowKey={(r) => r.id} pageSize={10} />
-
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mt-6 rounded-2xl border border-border bg-surface p-5"
-      >
-        <h2 className="mb-3 text-sm font-bold text-text">Configurar filtro de moderação</h2>
-        <p className="text-xs text-text-soft">
-          Lista de termos bloqueados em <code className="rounded bg-surface-2 px-1.5 py-0.5">lib/moderation.ts</code>.
-          Regex agrupado por categoria (ofensa direta, sensíveis, etc).
-        </p>
-        <Link
-          href="https://github.com/mathedor/imhere/blob/main/web/src/lib/moderation.ts"
-          target="_blank"
-          className="mt-3 inline-flex items-center gap-1.5 rounded-pill border border-brand/30 bg-brand/10 px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand hover:text-white"
-        >
-          Editar no GitHub →
-        </Link>
-      </motion.section>
+                <ModerationActions reportId={r.id} />
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

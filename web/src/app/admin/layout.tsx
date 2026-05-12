@@ -52,6 +52,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: FileBarChart,
     children: [
       { href: "/admin/relatorios", label: "Visão geral", icon: BarChart3 },
+      { href: "/admin/relatorios/funil", label: "Funil aquisição", icon: Activity },
       { href: "/admin/relatorios/checkins", label: "Check-ins", icon: MapPin },
       { href: "/admin/relatorios/usuarios", label: "Novos usuários", icon: UserPlus },
       { href: "/admin/relatorios/online", label: "Online agora", icon: Activity },

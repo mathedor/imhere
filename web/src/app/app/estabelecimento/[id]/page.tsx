@@ -3,6 +3,7 @@ import { EstablishmentDetail } from "@/components/establishment/EstablishmentDet
 import { getCurrentCheckin } from "@/lib/db/checkins";
 import { getEstablishment, listMoments, listPresentUsers } from "@/lib/db/establishments";
 import { listMenuByEstablishment } from "@/lib/db/menu";
+import { getCurrentProfile } from "@/lib/db/profiles";
 import type { Establishment as EstabUI, EstablishmentType } from "@/data/establishments";
 import type { AppUser } from "@/data/users";
 
@@ -13,12 +14,15 @@ export default async function EstablishmentPage({ params }: { params: Promise<{ 
   const place = await getEstablishment(id);
   if (!place) notFound();
 
-  const [presentProfiles, moments, menu, myCheckin] = await Promise.all([
+  const [presentProfiles, moments, menu, myCheckin, profile] = await Promise.all([
     listPresentUsers(place.id),
     listMoments(place.id),
     listMenuByEstablishment(place.id),
     getCurrentCheckin(),
+    getCurrentProfile(),
   ]);
+
+  const cocAccepted = !!(profile as { code_of_conduct_accepted_at?: string | null } | null)?.code_of_conduct_accepted_at;
 
   const iAmCheckedInHere =
     typeof myCheckin === "object" && myCheckin !== null && "establishment_id" in myCheckin
@@ -72,6 +76,7 @@ export default async function EstablishmentPage({ params }: { params: Promise<{ 
       hasMomento={moments.length > 0}
       hasMenu={menu.length > 0}
       iAmCheckedInHere={iAmCheckedInHere}
+      codeOfConductAccepted={cocAccepted}
     />
   );
 }

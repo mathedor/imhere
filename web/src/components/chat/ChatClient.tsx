@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
+import { ReportButton } from "@/components/chat/ReportButton";
 import { sendMessageAction } from "@/lib/actions/chat";
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 import type { Message } from "@/lib/db/types";
@@ -107,6 +108,7 @@ export function ChatClient({
         <button className="grid size-9 place-items-center rounded-full text-text-soft hover:bg-white/[0.04]">
           <Video className="size-4" />
         </button>
+        <ReportButton reportedProfileId={otherUser.id} conversationId={conversationId} />
         <button className="grid size-9 place-items-center rounded-full text-text-soft hover:bg-white/[0.04]">
           <MoreVertical className="size-4" />
         </button>

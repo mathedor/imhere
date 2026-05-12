@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, LogOut, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { CodeOfConductModal } from "@/components/app/CodeOfConductModal";
 import { doCheckInAction, doCheckOutAction } from "@/lib/actions/user-actions";
 import { cn } from "@/lib/utils";
 
@@ -10,27 +11,51 @@ interface CheckInButtonProps {
   establishmentId: string;
   establishmentName: string;
   initialCheckedIn?: boolean;
+  /** Se já aceitou código de conduta (vem do server) */
+  codeOfConductAccepted?: boolean;
 }
 
-export function CheckInButton({ establishmentId, establishmentName, initialCheckedIn = false }: CheckInButtonProps) {
+export function CheckInButton({
+  establishmentId,
+  establishmentName,
+  initialCheckedIn = false,
+  codeOfConductAccepted = false,
+}: CheckInButtonProps) {
   const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
   const [busy, setBusy] = useState(false);
+  const [showCoc, setShowCoc] = useState(false);
+  const [accepted, setAccepted] = useState(codeOfConductAccepted);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const action = checkedIn ? doCheckOutAction : doCheckInAction;
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!checkedIn && !accepted) {
+      e.preventDefault();
+      setShowCoc(true);
+      return;
+    }
+    setBusy(true);
+    setTimeout(() => {
+      setCheckedIn((v) => !v);
+      setBusy(false);
+    }, 600);
+  }
+
+  function onCocAccept() {
+    setAccepted(true);
+    setShowCoc(false);
+    setTimeout(() => {
+      setBusy(true);
+      setCheckedIn(true);
+      formRef.current?.requestSubmit();
+      setTimeout(() => setBusy(false), 600);
+    }, 200);
+  }
+
   return (
-    <form
-      action={action}
-      onSubmit={() => {
-        setBusy(true);
-        // Otimismo: toggle local imediato
-        setTimeout(() => {
-          setCheckedIn((v) => !v);
-          setBusy(false);
-        }, 600);
-      }}
-      className="contents"
-    >
+    <>
+    <form ref={formRef} action={action} onSubmit={handleSubmit} className="contents">
       <input type="hidden" name="estabId" value={establishmentId} />
       <motion.button
         type="submit"
@@ -91,5 +116,7 @@ export function CheckInButton({ establishmentId, establishmentName, initialCheck
         )}
       </motion.button>
     </form>
+    <CodeOfConductModal open={showCoc} onAccept={onCocAccept} onClose={() => setShowCoc(false)} />
+    </>
   );
 }
