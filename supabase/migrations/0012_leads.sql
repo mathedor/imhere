@@ -1,7 +1,12 @@
 -- Pipeline de leads para o time comercial
 -- Cada lead pertence a 1 comercial (owner) e passa por stages
 
-create type if not exists lead_stage as enum ('new', 'meeting', 'proposal', 'closed_won', 'closed_lost');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_stage') then
+    create type lead_stage as enum ('new', 'meeting', 'proposal', 'closed_won', 'closed_lost');
+  end if;
+end$$;
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
