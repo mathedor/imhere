@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { AdvancedFilters, type AdvancedFilterValues } from "@/components/app/AdvancedFilters";
 import { EstablishmentCard } from "@/components/EstablishmentCard";
 import { NearbyButton, SortMenu, type SortKey } from "@/components/SortMenu";
+import { logSearchAction } from "@/lib/actions/search-log";
 import type { Establishment } from "@/data/establishments";
 
 interface Props {
@@ -120,6 +121,22 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
     if (sort === "rated") sorted.sort((a, b) => b.rating - a.rating);
     return sorted;
   }, [establishments, sort, nearbyOnly, query]);
+
+  // Log de buscas com debounce (300ms após parar de digitar, query >= 2 chars)
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) return;
+    const t = setTimeout(() => {
+      logSearchAction({
+        query: q,
+        filters: { sort, nearbyOnly, ...filters },
+        resultCount: list.length,
+        lat: coords?.lat,
+        lng: coords?.lng,
+      }).catch(() => {});
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query, sort, nearbyOnly, filters, list.length, coords]);
 
   function open(id: string) {
     router.push(`/app/estabelecimento/${id}`);

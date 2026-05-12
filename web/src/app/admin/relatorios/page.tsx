@@ -1,48 +1,61 @@
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { RelatoriosClient } from "@/components/admin/RelatoriosClient";
-import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
 import {
-  getAllCheckinsByDay,
-  getInteractionsByDay,
-  getNewUsersByDay,
-  getRevenueByDay,
-} from "@/lib/db/admin-dashboard";
+  getCheckinReport,
+  getContactReport,
+  getGenderReport,
+  getNewUsersReport,
+  getOnlineUsersReport,
+  getSearchReport,
+  type Period,
+} from "@/lib/db/admin-reports";
 import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
+function parsePeriod(value?: string): Period {
+  if (value === "today" || value === "7d" || value === "30d" || value === "custom") return value;
+  return "30d";
+}
+
 export default async function RelatoriosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ period?: string; from?: string; to?: string }>;
 }) {
-  const { range } = await searchParams;
-  const rangeKey = parseRange(range);
-  const days = rangeToDays(rangeKey);
+  const sp = await searchParams;
+  const period = parsePeriod(sp.period);
+  const fromIso = sp.from;
+  const toIso = sp.to;
 
-  const [revenue, users, interactions, checkins] = await Promise.all([
-    getRevenueByDay(days),
-    getNewUsersByDay(days),
-    getInteractionsByDay(days),
-    getAllCheckinsByDay(days),
+  const [checkins, newUsers, online, searches, contacts, gender] = await Promise.all([
+    getCheckinReport(period, { fromIso, toIso }),
+    getNewUsersReport(period, { fromIso, toIso }),
+    getOnlineUsersReport(),
+    getSearchReport(period, { fromIso, toIso }),
+    getContactReport(period, { fromIso, toIso }),
+    getGenderReport(),
   ]);
 
   return (
     <PanelLayout
       scope="admin"
       title="Relatórios"
-      subtitle="Gere relatórios filtrados e exporte para análise externa"
+      subtitle="Análise completa da operação · escolha período pra refinar"
       nav={NAV_ADMIN}
       quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <RelatoriosClient
-        revenue={revenue}
-        users={users}
-        interactions={interactions}
+        period={period}
+        fromIso={fromIso}
+        toIso={toIso}
         checkins={checkins}
-        range={rangeKey}
-        days={days}
+        newUsers={newUsers}
+        online={online}
+        searches={searches}
+        contacts={contacts}
+        gender={gender}
       />
     </PanelLayout>
   );
