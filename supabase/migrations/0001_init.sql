@@ -164,8 +164,8 @@ create table moments (
   expires_at timestamptz not null default (now() + interval '4 hours')
 );
 
-create index idx_moments_estab_active on moments(establishment_id, expires_at)
-  where expires_at > now();
+-- Sem WHERE com now() (não é IMMUTABLE). Filtramos na query.
+create index idx_moments_estab_active on moments(establishment_id, expires_at desc);
 
 create table moment_views (
   moment_id uuid not null references moments(id) on delete cascade,
