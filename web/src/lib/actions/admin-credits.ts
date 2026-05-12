@@ -59,12 +59,42 @@ export async function createCreditPackAction(formData: FormData) {
     credits: Math.max(1, Number(formData.get("credits") ?? 50)),
     bonus: Math.max(0, Number(formData.get("bonus") ?? 0)),
     price_cents: Math.max(100, Math.round(Number(formData.get("price") ?? 9.9) * 100)),
-    highlight: false,
+    highlight: formData.get("highlight") === "true",
     active: true,
-    sort_order: 99,
+    sort_order: Math.max(0, Number(formData.get("sortOrder") ?? 99)),
   });
 
   revalidatePath("/admin/creditos");
+  revalidatePath("/app/creditos");
+}
+
+export async function toggleCreditPackAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const currentActive = formData.get("active") === "true";
+  if (!id || isMockMode()) return;
+  const admin = supabaseAdmin();
+  await admin.from("credit_packs").update({ active: !currentActive }).eq("id", id);
+  revalidatePath("/admin/creditos");
+  revalidatePath("/app/creditos");
+}
+
+export async function toggleCreditPackHighlightAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const current = formData.get("highlight") === "true";
+  if (!id || isMockMode()) return;
+  const admin = supabaseAdmin();
+  await admin.from("credit_packs").update({ highlight: !current }).eq("id", id);
+  revalidatePath("/admin/creditos");
+  revalidatePath("/app/creditos");
+}
+
+export async function deleteCreditPackAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id || isMockMode()) return;
+  const admin = supabaseAdmin();
+  await admin.from("credit_packs").delete().eq("id", id);
+  revalidatePath("/admin/creditos");
+  revalidatePath("/app/creditos");
 }
 
 export async function grantBonusCreditsAction(formData: FormData) {

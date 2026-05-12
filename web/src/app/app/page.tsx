@@ -6,9 +6,23 @@ import type { Establishment } from "@/data/establishments";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lat?: string; lng?: string; nearby?: string }>;
+}) {
+  const sp = await searchParams;
+  const lat = sp.lat ? Number(sp.lat) : undefined;
+  const lng = sp.lng ? Number(sp.lng) : undefined;
+  const nearbyOnly = sp.nearby === "1";
+
   const [nearby, profile, credits] = await Promise.all([
-    listNearbyEstablishments({ sort: "nearest" }),
+    listNearbyEstablishments({
+      sort: "nearest",
+      lat: Number.isFinite(lat) ? lat : undefined,
+      lng: Number.isFinite(lng) ? lng : undefined,
+      nearbyOnly,
+    }),
     getCurrentProfile(),
     getMyBalance(),
   ]);

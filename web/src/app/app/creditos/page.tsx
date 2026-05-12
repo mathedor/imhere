@@ -55,6 +55,15 @@ export default async function CreditosPage() {
         <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-muted">
           Comprar créditos
         </h2>
+        {packs.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
+            <Coins className="mx-auto size-10 text-muted" />
+            <p className="mt-3 text-sm font-bold text-text">Nenhum pacote disponível agora</p>
+            <p className="mt-1 text-xs text-text-soft">
+              Estamos preparando pacotes novos. Volta em breve.
+            </p>
+          </div>
+        ) : (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {packs.map((p, i) => (
             <motion.button
@@ -94,6 +103,7 @@ export default async function CreditosPage() {
             </motion.button>
           ))}
         </div>
+        )}
       </section>
 
       <section className="mb-8">

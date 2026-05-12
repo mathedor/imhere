@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, MapPin, Search, SlidersHorizontal, Users, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { AdvancedFilters, type AdvancedFilterValues } from "@/components/app/AdvancedFilters";
 import { EstablishmentCard } from "@/components/EstablishmentCard";
 import { NearbyButton, SortMenu, type SortKey } from "@/components/SortMenu";
@@ -18,8 +18,10 @@ interface Props {
 
 export function HomeClient({ establishments, totalOnline, isPremium = false, credits = 0 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
   const [sort, setSort] = useState<SortKey>("nearest");
-  const [nearbyOnly, setNearbyOnly] = useState(false);
+  const nearbyOnly = searchParams.get("nearby") === "1";
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<AdvancedFilterValues>({
     gender: "all",
@@ -29,6 +31,11 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
   });
   const [locationLabel, setLocationLabel] = useState("Compartilhe sua localização");
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "ok" | "denied">("idle");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(() => {
+    const lat = Number(searchParams.get("lat"));
+    const lng = Number(searchParams.get("lng"));
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  });
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -40,8 +47,19 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         setLocationStatus("ok");
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const wasMissing = !searchParams.get("lat");
+        setCoords({ lat, lng });
+        // Sincroniza coordenadas no URL pra server-side ranking real
+        if (wasMissing) {
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("lat", lat.toFixed(6));
+          params.set("lng", lng.toFixed(6));
+          startTransition(() => router.replace(`?${params.toString()}`, { scroll: false }));
+        }
         try {
-          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
           const d = await r.json();
           const city = d.address?.suburb ?? d.address?.city ?? d.address?.town ?? "Sua região";
           const state = d.address?.state ?? "";
@@ -56,7 +74,33 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
       },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function toggleNearby() {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nearbyOnly) {
+      params.delete("nearby");
+    } else {
+      params.set("nearby", "1");
+      if (coords) {
+        params.set("lat", coords.lat.toFixed(6));
+        params.set("lng", coords.lng.toFixed(6));
+      }
+    }
+    startTransition(() => router.push(`?${params.toString()}`, { scroll: false }));
+
+    if (!nearbyOnly && !coords && navigator.geolocation) {
+      // Pede geo se ainda não tem
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const p = new URLSearchParams(searchParams.toString());
+        p.set("nearby", "1");
+        p.set("lat", pos.coords.latitude.toFixed(6));
+        p.set("lng", pos.coords.longitude.toFixed(6));
+        router.push(`?${p.toString()}`, { scroll: false });
+      });
+    }
+  }
 
   const list = useMemo(() => {
     let arr = establishments;
@@ -68,7 +112,8 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
         e.tags.some((t) => t.toLowerCase().includes(q))
       );
     }
-    if (nearbyOnly) arr = arr.filter((e) => e.distanceKm <= 2);
+    // Server já filtra por raio quando nearby=1, mas mantemos cliente como safety net
+    if (nearbyOnly) arr = arr.filter((e) => e.distanceKm <= 5);
     const sorted = [...arr];
     if (sort === "nearest") sorted.sort((a, b) => a.distanceKm - b.distanceKm);
     if (sort === "busiest") sorted.sort((a, b) => b.presentNow - a.presentNow);
@@ -126,7 +171,7 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
       </section>
 
       <section className="flex flex-wrap items-center justify-between gap-2">
-        <NearbyButton active={nearbyOnly} onClick={() => setNearbyOnly((v) => !v)} />
+        <NearbyButton active={nearbyOnly} onClick={toggleNearby} />
         <div className="flex items-center gap-2">
           <AdvancedFilters isPremium={isPremium} balance={credits} value={filters} onChange={setFilters} />
           <SortMenu value={sort} onChange={setSort} />

@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import Link from "next/link";
 import { CreditBadge } from "./CreditBadge";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { signOutAction } from "@/lib/auth/actions";
 
 interface Props {
   unreadNotif?: number;
@@ -36,6 +37,19 @@ export function AppHeader({ unreadNotif = 0, credits = 0 }: Props = {}) {
             )}
           </motion.div>
         </Link>
+        <form action={signOutAction}>
+          <motion.button
+            type="submit"
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ y: -2 }}
+            transition={{ type: "spring", stiffness: 420, damping: 14 }}
+            className="grid size-9 place-items-center rounded-full border border-border bg-surface text-text transition-colors hover:border-brand/40 hover:text-brand"
+            title="Sair"
+            aria-label="Sair"
+          >
+            <LogOut className="size-4" />
+          </motion.button>
+        </form>
       </div>
     </header>
   );

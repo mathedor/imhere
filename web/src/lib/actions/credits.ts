@@ -88,6 +88,21 @@ export async function listCreditPacks(): Promise<CreditPack[]> {
   return (data as CreditPack[]) ?? [];
 }
 
+export interface AdminCreditPack extends CreditPack {
+  active: boolean;
+}
+
+/** Lista todos os pacotes (inclusive inativos) — uso interno do /admin */
+export async function listAllCreditPacks(): Promise<AdminCreditPack[]> {
+  if (isMockMode()) {
+    const base = await listCreditPacks();
+    return base.map((p) => ({ ...p, active: true }));
+  }
+  const sb = await supabaseServer();
+  const { data } = await sb.from("credit_packs").select("*").order("sort_order");
+  return (data as AdminCreditPack[]) ?? [];
+}
+
 export interface Feature {
   code: string;
   label: string;

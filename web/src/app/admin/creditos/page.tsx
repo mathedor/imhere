@@ -1,7 +1,25 @@
-import { Coins, MessageCircle, Save, Sparkles, User as UserIcon, Zap } from "lucide-react";
+import {
+  Coins,
+  EyeOff,
+  MessageCircle,
+  Plus,
+  Save,
+  Sparkles,
+  Star,
+  Trash2,
+  User as UserIcon,
+  Zap,
+} from "lucide-react";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { listCreditPacks, listFeatures } from "@/lib/actions/credits";
-import { updateCreditPackAction, updateFeaturePricingAction } from "@/lib/actions/admin-credits";
+import { listAllCreditPacks, listFeatures } from "@/lib/actions/credits";
+import {
+  createCreditPackAction,
+  deleteCreditPackAction,
+  toggleCreditPackAction,
+  toggleCreditPackHighlightAction,
+  updateCreditPackAction,
+  updateFeaturePricingAction,
+} from "@/lib/actions/admin-credits";
 import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
@@ -42,7 +60,7 @@ async function getCreditStats(): Promise<StatsRow> {
 }
 
 export default async function AdminCreditosPage() {
-  const [features, packs, stats] = await Promise.all([listFeatures(), listCreditPacks(), getCreditStats()]);
+  const [features, packs, stats] = await Promise.all([listFeatures(), listAllCreditPacks(), getCreditStats()]);
 
   const grouped = features.reduce<Record<string, typeof features>>((acc, f) => {
     (acc[f.scope] = acc[f.scope] || []).push(f);
@@ -151,72 +169,204 @@ export default async function AdminCreditosPage() {
         <header className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-text">Pacotes de compra</h2>
-            <p className="text-xs text-text-soft">Edite preço, créditos e bônus de cada pacote vendido em /app/creditos.</p>
+            <p className="text-xs text-text-soft">
+              {packs.length} pacote{packs.length !== 1 ? "s" : ""} cadastrado{packs.length !== 1 ? "s" : ""} ·
+              edite preço/créditos/bônus ou crie novos
+            </p>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {packs.map((p) => (
-            <div key={p.id} className="rounded-2xl border border-border bg-surface p-4">
-              <header className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-text">{p.name}</h3>
-                {p.highlight && (
-                  <span className="rounded-pill bg-brand/15 px-2 py-0.5 text-[0.55rem] font-bold uppercase text-brand">
-                    Popular
-                  </span>
-                )}
-              </header>
+        <form
+          action={createCreditPackAction}
+          className="mb-4 grid grid-cols-1 gap-2 rounded-2xl border border-dashed border-brand/30 bg-brand/5 p-4 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] md:items-end"
+        >
+          <div>
+            <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
+              Nome do pacote
+            </label>
+            <input
+              name="name"
+              required
+              placeholder="Ex: Mega Pacote"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">Créditos</label>
+            <input
+              name="credits"
+              type="number"
+              min="1"
+              defaultValue="50"
+              required
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">Bônus</label>
+            <input
+              name="bonus"
+              type="number"
+              min="0"
+              defaultValue="0"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">Preço (R$)</label>
+            <input
+              name="price"
+              type="number"
+              step="0.01"
+              min="1"
+              defaultValue="9.90"
+              required
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">Ordem</label>
+            <input
+              name="sortOrder"
+              type="number"
+              min="0"
+              defaultValue={packs.length}
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-brand-strong to-brand px-4 text-xs font-bold uppercase tracking-wider text-white shadow-glow"
+          >
+            <Plus className="size-3.5" />
+            Criar
+          </button>
+        </form>
 
-              <form action={updateCreditPackAction} className="flex flex-col gap-2">
-                <input type="hidden" name="id" value={p.id} />
-                <input type="hidden" name="highlight" value={p.highlight ? "true" : "false"} />
-                <input type="hidden" name="active" value="true" />
+        {packs.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
+            <Coins className="mx-auto size-8 text-muted" />
+            <p className="mt-3 text-sm font-bold text-text">Nenhum pacote cadastrado</p>
+            <p className="mt-1 text-xs text-text-soft">
+              Use o formulário acima para criar o primeiro pacote vendido em /app/creditos.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {packs.map((p) => (
+              <div
+                key={p.id}
+                className={`rounded-2xl border bg-surface p-4 ${
+                  p.active ? "border-border" : "border-dashed border-border opacity-60"
+                }`}
+              >
+                <header className="mb-3 flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-text">{p.name}</h3>
+                  <div className="flex items-center gap-1">
+                    {p.highlight && (
+                      <span className="rounded-pill bg-brand/15 px-2 py-0.5 text-[0.55rem] font-bold uppercase text-brand">
+                        Popular
+                      </span>
+                    )}
+                    {!p.active && (
+                      <span className="rounded-pill bg-muted/20 px-2 py-0.5 text-[0.55rem] font-bold uppercase text-muted">
+                        Inativo
+                      </span>
+                    )}
+                  </div>
+                </header>
 
-                <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
-                  Créditos
-                </label>
-                <input
-                  name="credits"
-                  type="number"
-                  min="1"
-                  defaultValue={p.credits}
-                  className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
-                />
+                <form action={updateCreditPackAction} className="flex flex-col gap-2">
+                  <input type="hidden" name="id" value={p.id} />
+                  <input type="hidden" name="highlight" value={p.highlight ? "true" : "false"} />
+                  <input type="hidden" name="active" value={p.active ? "true" : "false"} />
 
-                <label className="mt-1 block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
-                  Bônus
-                </label>
-                <input
-                  name="bonus"
-                  type="number"
-                  min="0"
-                  defaultValue={p.bonus}
-                  className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
-                />
+                  <label className="block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
+                    Créditos
+                  </label>
+                  <input
+                    name="credits"
+                    type="number"
+                    min="1"
+                    defaultValue={p.credits}
+                    className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+                  />
 
-                <label className="mt-1 block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
-                  Preço (R$)
-                </label>
-                <input
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={(p.price_cents / 100).toFixed(2)}
-                  className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
-                />
+                  <label className="mt-1 block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
+                    Bônus
+                  </label>
+                  <input
+                    name="bonus"
+                    type="number"
+                    min="0"
+                    defaultValue={p.bonus}
+                    className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+                  />
 
-                <button
-                  type="submit"
-                  className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-brand-strong"
-                >
-                  <Save className="size-3.5" />
-                  Salvar
-                </button>
-              </form>
-            </div>
-          ))}
-        </div>
+                  <label className="mt-1 block text-[0.6rem] font-bold uppercase tracking-widest text-muted">
+                    Preço (R$)
+                  </label>
+                  <input
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    defaultValue={(p.price_cents / 100).toFixed(2)}
+                    className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-brand/60 outline-none"
+                  />
+
+                  <button
+                    type="submit"
+                    className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-brand-strong"
+                  >
+                    <Save className="size-3.5" />
+                    Salvar
+                  </button>
+                </form>
+
+                <div className="mt-2 flex items-center gap-1.5 border-t border-border pt-2">
+                  <form action={toggleCreditPackHighlightAction} className="flex-1">
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="highlight" value={p.highlight ? "true" : "false"} />
+                    <button
+                      type="submit"
+                      className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-[0.65rem] font-bold transition-colors ${
+                        p.highlight
+                          ? "bg-brand/15 text-brand hover:bg-brand/25"
+                          : "bg-surface-2 text-text-soft hover:text-text"
+                      }`}
+                      title={p.highlight ? "Remover destaque" : "Marcar como popular"}
+                    >
+                      <Star className="size-3" />
+                      {p.highlight ? "Popular" : "Destacar"}
+                    </button>
+                  </form>
+                  <form action={toggleCreditPackAction}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="active" value={p.active ? "true" : "false"} />
+                    <button
+                      type="submit"
+                      className="grid size-7 place-items-center rounded-lg bg-surface-2 text-text-soft hover:text-text"
+                      title={p.active ? "Desativar pacote" : "Reativar pacote"}
+                    >
+                      <EyeOff className="size-3.5" />
+                    </button>
+                  </form>
+                  <form action={deleteCreditPackAction}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      className="grid size-7 place-items-center rounded-lg bg-surface-2 text-text-soft hover:text-brand"
+                      title="Apagar pacote"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </PanelLayout>
   );
