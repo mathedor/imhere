@@ -36,8 +36,10 @@ export function BottomNav({ unreadChat = 0 }: Props = {}) {
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 420, damping: 18 }}
                 className={cn(
-                  "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1",
-                  active ? "text-white" : "text-text-soft hover:text-text"
+                  "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 transition-colors",
+                  active
+                    ? "text-white"
+                    : "text-text hover:bg-surface-2"
                 )}
               >
                 {active && (

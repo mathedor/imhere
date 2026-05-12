@@ -24,6 +24,10 @@ interface Props {
   establishment: { id: string; name: string; city: string; state: string } | null;
   initialMessages: Message[];
   startedAt?: string;
+  /** Saldo de créditos pra gate de foto/áudio */
+  credits?: number;
+  /** Se tiver plano premium/vip, libera mídia grátis */
+  isPremiumMedia?: boolean;
 }
 
 export function ChatClient({
@@ -33,6 +37,8 @@ export function ChatClient({
   establishment,
   initialMessages,
   startedAt = "agora",
+  credits = 0,
+  isPremiumMedia = false,
 }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useRealtimeMessages(conversationId, initialMessages);
@@ -163,7 +169,7 @@ export function ChatClient({
       </div>
 
       <div className="border-t border-border bg-bg/95 px-3 py-3 backdrop-blur-md">
-        <MessageInput onSend={send} />
+        <MessageInput onSend={send} balance={credits} isPremiumMedia={isPremiumMedia} />
         <p className="mt-2 px-1 text-center text-[0.65rem] text-muted">
           🛡️ Mensagens são moderadas automaticamente · ⚡ Tempo real ativo
         </p>

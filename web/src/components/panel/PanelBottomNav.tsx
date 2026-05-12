@@ -42,8 +42,8 @@ export function PanelBottomNav({ items, onMenu, scope }: Props) {
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 420, damping: 18 }}
                 className={cn(
-                  "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1",
-                  active ? "text-white" : "text-text-soft hover:text-text"
+                  "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 transition-colors",
+                  active ? "text-white" : "text-text hover:bg-surface-2"
                 )}
               >
                 {active && (
@@ -78,7 +78,7 @@ export function PanelBottomNav({ items, onMenu, scope }: Props) {
             whileTap={{ scale: 0.88 }}
             whileHover={{ y: -2 }}
             transition={{ type: "spring", stiffness: 420, damping: 18 }}
-            className="flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-text-soft hover:text-text"
+            className="flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-text hover:bg-surface-2 transition-colors"
           >
             <Menu className="size-[18px]" />
             <span className="text-[10px] font-bold leading-none">Menu</span>

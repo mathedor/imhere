@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { ChatClient } from "@/components/chat/ChatClient";
+import { getMyBalance } from "@/lib/actions/credits";
 import { getConversationContext } from "@/lib/db/chat-queries";
+import { getCurrentProfile } from "@/lib/db/profiles";
 import { isMockMode } from "@/lib/supabase/config";
 import { conversations, messagesByConversation } from "@/data/conversations";
 import { users as mockUsers } from "@/data/users";
@@ -52,8 +54,14 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const ctx = await getConversationContext(id);
+  const [ctx, credits, profile] = await Promise.all([
+    getConversationContext(id),
+    getMyBalance(),
+    getCurrentProfile(),
+  ]);
   if (!ctx) notFound();
+
+  const isPremium = !!profile?.current_plan_id || profile?.role === "admin";
 
   return (
     <ChatClient
@@ -62,6 +70,8 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
       otherUser={ctx.otherUser}
       establishment={ctx.establishment}
       initialMessages={ctx.messages as DBMessage[]}
+      credits={credits}
+      isPremiumMedia={isPremium}
     />
   );
 }
