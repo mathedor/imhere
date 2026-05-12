@@ -4,14 +4,12 @@ import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeUrlFilter } from "@/components/panel/DateRangeUrlFilter";
 import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import {
   getRevenueByDay,
   getSalesKPIs,
   listRecentSubscriptions,
   type RecentSubscription,
 } from "@/lib/db/admin-dashboard";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -97,14 +95,11 @@ export default async function VendasPage({
   ]);
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Vendas & assinaturas"
-      subtitle="Receita, churn e detalhamento de cobranças"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Vendas & assinaturas</h1>
+        <p className="mt-1 text-sm text-text-soft">Receita, churn e detalhamento de cobranças</p>
+      </header>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <DateRangeUrlFilter current={rangeKey} />
         <button className="flex items-center gap-2 rounded-pill border border-border bg-surface px-4 py-2 text-xs font-bold text-text hover:border-brand/40">
@@ -169,6 +164,6 @@ export default async function VendasPage({
           <DataTable columns={columns} data={recent} rowKey={(r) => r.id} pageSize={10} />
         )}
       </section>
-    </PanelLayout>
+    </>
   );
 }

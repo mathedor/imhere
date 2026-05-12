@@ -29,11 +29,9 @@ import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { checkinsByDay } from "@/data/analytics";
 import { establishments, momentoByEstablishment, typeLabel } from "@/data/establishments";
 import { presentByEstablishment, users, AppUser } from "@/data/users";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface CheckinLog {
   id: string;
@@ -170,14 +168,11 @@ export default function AdminEstabelecimentoPage() {
   );
 
   return (
-    <PanelLayout
-      scope="admin"
-      title={`Estabelecimento · ${place.name}`}
-      subtitle={`${place.address} · ${place.city}/${place.state}`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{`Estabelecimento · ${place.name}`}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${place.address} · ${place.city}/${place.state}`}</p>
+      </header>
       <Link
         href="/admin/estabelecimentos"
         className="mb-4 inline-flex items-center gap-1 text-xs text-text-soft hover:text-text"
@@ -290,7 +285,7 @@ export default function AdminEstabelecimentoPage() {
           </section>
         </main>
       </section>
-    </PanelLayout>
+    </>
   );
 }
 

@@ -1,9 +1,7 @@
 import { EstabsClient } from "@/components/admin/EstabsClient";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listAllEstablishments } from "@/lib/db/admin-queries";
 import { listNearbyEstablishments } from "@/lib/db/establishments";
 import { isMockMode } from "@/lib/supabase/config";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -47,15 +45,12 @@ export default async function EstabelecimentosAdminPage() {
   }
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Estabelecimentos"
-      subtitle={`${rows.length} cadastrados`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Estabelecimentos</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${rows.length} cadastrados`}</p>
+      </header>
       <EstabsClient rows={rows} />
-    </PanelLayout>
+    </>
   );
 }

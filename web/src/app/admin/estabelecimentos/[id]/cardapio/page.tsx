@@ -2,10 +2,8 @@ import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CardapioEditor, type MenuItem } from "@/components/estabelecimento/CardapioEditor";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { getEstablishment } from "@/lib/db/establishments";
 import { listMenuByEstablishment } from "@/lib/db/menu";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +28,11 @@ export default async function AdminCardapioPage({
   }));
 
   return (
-    <PanelLayout
-      scope="admin"
-      title={`Cardápio · ${estab.name}`}
-      subtitle={`${items.length} itens · publicado em /cardapio/${estab.slug ?? estab.id}`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{`Cardápio · ${estab.name}`}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${items.length} itens · publicado em /cardapio/${estab.slug ?? estab.id}`}</p>
+      </header>
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           href={`/admin/estabelecimentos/${estab.id}`}
@@ -57,6 +52,6 @@ export default async function AdminCardapioPage({
         publicSlug={estab.slug ?? undefined}
         establishmentId={estab.id}
       />
-    </PanelLayout>
+    </>
   );
 }

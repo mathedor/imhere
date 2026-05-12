@@ -10,7 +10,6 @@ import {
   User as UserIcon,
   Zap,
 } from "lucide-react";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listAllCreditPacks, listFeatures } from "@/lib/actions/credits";
 import {
   createCreditPackAction,
@@ -20,7 +19,6 @@ import {
   updateCreditPackAction,
   updateFeaturePricingAction,
 } from "@/lib/actions/admin-credits";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
 
@@ -68,14 +66,11 @@ export default async function AdminCreditosPage() {
   }, {});
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Sistema de créditos"
-      subtitle="Edite preços por feature e pacotes de compra · 250 créditos no cadastro"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Sistema de créditos</h1>
+        <p className="mt-1 text-sm text-text-soft">Edite preços por feature e pacotes de compra · 250 créditos no cadastro</p>
+      </header>
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: "Usuários com saldo", value: stats.total_users.toLocaleString("pt-BR"), color: "#3b82f6" },
@@ -368,6 +363,6 @@ export default async function AdminCreditosPage() {
           </div>
         )}
       </section>
-    </PanelLayout>
+    </>
   );
 }

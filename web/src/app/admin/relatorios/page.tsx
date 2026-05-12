@@ -1,4 +1,3 @@
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { RelatoriosClient } from "@/components/admin/RelatoriosClient";
 import {
   getCheckinReport,
@@ -9,7 +8,6 @@ import {
   getSearchReport,
   type Period,
 } from "@/lib/db/admin-reports";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +36,11 @@ export default async function RelatoriosPage({
   ]);
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Relatórios"
-      subtitle="Análise completa da operação · escolha período pra refinar"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Relatórios</h1>
+        <p className="mt-1 text-sm text-text-soft">Análise completa da operação · escolha período pra refinar</p>
+      </header>
       <RelatoriosClient
         period={period}
         fromIso={fromIso}
@@ -57,6 +52,6 @@ export default async function RelatoriosPage({
         contacts={contacts}
         gender={gender}
       />
-    </PanelLayout>
+    </>
   );
 }

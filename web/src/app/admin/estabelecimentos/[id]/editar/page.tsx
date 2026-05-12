@@ -2,9 +2,7 @@
 
 import { notFound, useParams } from "next/navigation";
 import { EstablishmentForm } from "@/components/admin/EstablishmentForm";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export default function EditarEstabelecimentoPage() {
   const params = useParams<{ id: string }>();
@@ -12,14 +10,11 @@ export default function EditarEstabelecimentoPage() {
   if (!place) notFound();
 
   return (
-    <PanelLayout
-      scope="admin"
-      title={`Editar · ${place.name}`}
-      subtitle={`${place.city}/${place.state}`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{`Editar · ${place.name}`}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${place.city}/${place.state}`}</p>
+      </header>
       <EstablishmentForm
         mode="edit"
         initial={{
@@ -34,6 +29,6 @@ export default function EditarEstabelecimentoPage() {
           cover: place.cover,
         }}
       />
-    </PanelLayout>
+    </>
   );
 }

@@ -1,20 +1,15 @@
 "use client";
 
 import { EstablishmentForm } from "@/components/admin/EstablishmentForm";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export default function NovoEstabelecimentoAdminPage() {
   return (
-    <PanelLayout
-      scope="admin"
-      title="Novo estabelecimento"
-      subtitle="Cria e atribui um responsável"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Novo estabelecimento</h1>
+        <p className="mt-1 text-sm text-text-soft">Cria e atribui um responsável</p>
+      </header>
       <EstablishmentForm mode="create" />
-    </PanelLayout>
+    </>
   );
 }

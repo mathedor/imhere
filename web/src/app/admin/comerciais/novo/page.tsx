@@ -1,19 +1,14 @@
 import { UserForm } from "@/components/admin/UserForm";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
 export default function NovoComercialPage() {
   return (
-    <PanelLayout
-      scope="admin"
-      title="Novo comercial"
-      subtitle="Cadastre um executivo de contas — role 'sales' liberada de cara"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Novo comercial</h1>
+        <p className="mt-1 text-sm text-text-soft">Cadastre um executivo de contas — role &apos;sales&apos; liberada de cara</p>
+      </header>
       <UserForm
         mode="create"
         initial={{
@@ -21,6 +16,6 @@ export default function NovoComercialPage() {
           status: "watching",
         }}
       />
-    </PanelLayout>
+    </>
   );
 }

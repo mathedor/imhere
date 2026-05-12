@@ -2,9 +2,7 @@
 
 import { notFound, useParams } from "next/navigation";
 import { UserForm } from "@/components/admin/UserForm";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { users } from "@/data/users";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export default function EditarUsuarioPage() {
   const params = useParams<{ id: string }>();
@@ -12,14 +10,11 @@ export default function EditarUsuarioPage() {
   if (!user) notFound();
 
   return (
-    <PanelLayout
-      scope="admin"
-      title={`Editar · ${user.name}`}
-      subtitle={`ID ${user.id}`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{`Editar · ${user.name}`}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`ID ${user.id}`}</p>
+      </header>
       <UserForm
         mode="edit"
         initial={{
@@ -35,6 +30,6 @@ export default function EditarUsuarioPage() {
           plan: "premium",
         }}
       />
-    </PanelLayout>
+    </>
   );
 }

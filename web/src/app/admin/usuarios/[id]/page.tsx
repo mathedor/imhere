@@ -26,11 +26,9 @@ import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
 import { presentByEstablishment, users } from "@/data/users";
 import { cn } from "@/lib/utils";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface Activity {
   id: string;
@@ -91,14 +89,11 @@ export default function AdminUsuarioPage() {
   const place = currentEstab ? establishments.find((e) => e.id === currentEstab) : null;
 
   return (
-    <PanelLayout
-      scope="admin"
-      title={`Usuário · ${user.name}`}
-      subtitle={`ID ${user.id} · perfil 360 com logs completos`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{`Usuário · ${user.name}`}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`ID ${user.id} · perfil 360 com logs completos`}</p>
+      </header>
       <Link href="/admin/usuarios" className="mb-4 inline-flex items-center gap-1 text-xs text-text-soft hover:text-text">
         <ArrowLeft className="size-3.5" />
         Voltar à lista
@@ -269,7 +264,7 @@ export default function AdminUsuarioPage() {
           </section>
         </main>
       </section>
-    </PanelLayout>
+    </>
   );
 }
 

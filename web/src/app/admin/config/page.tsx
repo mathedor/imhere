@@ -4,21 +4,16 @@ import { motion } from "framer-motion";
 import { CreditCard, Database, Globe, Key, Save, Server, Shield } from "lucide-react";
 import { useState } from "react";
 import { Field, Input } from "@/components/Field";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export default function ConfigPage() {
   const [saved, setSaved] = useState(false);
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Configurações"
-      subtitle="Configurações globais da plataforma"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Configurações</h1>
+        <p className="mt-1 text-sm text-text-soft">Configurações globais da plataforma</p>
+      </header>
       <form
         onSubmit={(e) => { e.preventDefault(); setSaved(true); setTimeout(() => setSaved(false), 2000); }}
         className="flex flex-col gap-5"
@@ -120,7 +115,7 @@ export default function ConfigPage() {
           )}
         </motion.button>
       </form>
-    </PanelLayout>
+    </>
   );
 }
 

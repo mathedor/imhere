@@ -1,20 +1,15 @@
 "use client";
 
 import { UserForm } from "@/components/admin/UserForm";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export default function NovoUsuarioPage() {
   return (
-    <PanelLayout
-      scope="admin"
-      title="Novo usuário"
-      subtitle="Cadastro manual pelo admin (sem confirmação de email)"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Novo usuário</h1>
+        <p className="mt-1 text-sm text-text-soft">Cadastro manual pelo admin (sem confirmação de email)</p>
+      </header>
       <UserForm mode="create" />
-    </PanelLayout>
+    </>
   );
 }

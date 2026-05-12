@@ -7,8 +7,6 @@ import Link from "next/link";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface ModLog {
   id: string;
@@ -81,14 +79,11 @@ const columns: Column<ModLog>[] = [
 
 export default function ModeracaoPage() {
   return (
-    <PanelLayout
-      scope="admin"
-      title="Moderação"
-      subtitle="Mensagens bloqueadas, avisos e reincidências"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Moderação</h1>
+        <p className="mt-1 text-sm text-text-soft">Mensagens bloqueadas, avisos e reincidências</p>
+      </header>
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard icon={ShieldOff} label="Bloqueios 30d" value="312" delta={{ value: 12, sign: "down" }} color="#ef2c39" index={0} />
         <KpiCard icon={AlertTriangle} label="Avisos 30d" value="48" color="#f59e0b" index={1} />
@@ -120,6 +115,6 @@ export default function ModeracaoPage() {
           Editar no GitHub →
         </Link>
       </motion.section>
-    </PanelLayout>
+    </>
   );
 }

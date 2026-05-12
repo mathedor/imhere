@@ -1,8 +1,6 @@
 import { UsuariosClient } from "@/components/admin/UsuariosClient";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listAllProfiles } from "@/lib/db/admin-queries";
 import { isMockMode } from "@/lib/supabase/config";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 import { users as mockUsers } from "@/data/users";
 
 export const dynamic = "force-dynamic";
@@ -38,15 +36,12 @@ export default async function UsuariosAdminPage() {
       }));
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Usuários"
-      subtitle={`${rows.length.toLocaleString("pt-BR")} cadastrados`}
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Usuários</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${rows.length.toLocaleString("pt-BR")} cadastrados`}</p>
+      </header>
       <UsuariosClient users={rows} total={rows.length} />
-    </PanelLayout>
+    </>
   );
 }

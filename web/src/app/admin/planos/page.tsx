@@ -4,10 +4,8 @@ import { motion } from "framer-motion";
 import { Building2, Check, Crown, Edit3, Plus, Sparkles, Star, Trash2, User as UserIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { plans as mockPlans } from "@/data/plans";
 import { cn } from "@/lib/utils";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 type Target = "user" | "establishment";
 
@@ -53,14 +51,11 @@ export default function AdminPlanosPage() {
   const list = target === "user" ? userPlans : ESTAB_PLANS;
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Planos"
-      subtitle="Gerencie planos de usuário e estabelecimento"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Planos</h1>
+        <p className="mt-1 text-sm text-text-soft">Gerencie planos de usuário e estabelecimento</p>
+      </header>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1 rounded-pill border border-border bg-surface p-1">
           <button
@@ -194,6 +189,6 @@ export default function AdminPlanosPage() {
           Você define preços, features e tiers aqui. Cobrança automática nos pagamentos recorrentes.
         </p>
       </section>
-    </PanelLayout>
+    </>
   );
 }

@@ -1,9 +1,7 @@
 import { Mail, Plus, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { DataTable, type Column } from "@/components/panel/DataTable";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listSalesAgents, type SalesAgent } from "@/lib/db/sales-agents";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -60,14 +58,11 @@ export default async function ComerciaisPage() {
   const top3 = [...agents].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 3);
 
   return (
-    <PanelLayout
-      scope="admin"
-      title="Comerciais"
-      subtitle="Equipe de vendas que cadastra e gerencia estabelecimentos"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Comerciais</h1>
+        <p className="mt-1 text-sm text-text-soft">Equipe de vendas que cadastra e gerencia estabelecimentos</p>
+      </header>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-bold uppercase tracking-widest text-muted">
           {agents.length} comerciais ativos
@@ -129,6 +124,6 @@ export default async function ComerciaisPage() {
           <DataTable columns={columns} data={agents} rowKey={(r) => r.id} pageSize={10} />
         </>
       )}
-    </PanelLayout>
+    </>
   );
 }
