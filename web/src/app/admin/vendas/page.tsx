@@ -1,7 +1,8 @@
 import { CircleDollarSign, Download, RefreshCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
-import { DateRangeUrlFilter, parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
+import { DateRangeUrlFilter } from "@/components/panel/DateRangeUrlFilter";
+import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import { KpiCard } from "@/components/panel/KpiCard";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import {

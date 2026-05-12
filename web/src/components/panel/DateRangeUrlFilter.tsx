@@ -5,8 +5,9 @@ import { Calendar } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { cn } from "@/lib/utils";
+import type { RangeKey } from "./range-utils";
 
-export type RangeKey = "today" | "7d" | "30d" | "90d" | "year";
+export { parseRange, rangeToDays, type RangeKey } from "./range-utils";
 
 const RANGES: ReadonlyArray<{ key: RangeKey; label: string }> = [
   { key: "today", label: "Hoje" },
@@ -15,26 +16,6 @@ const RANGES: ReadonlyArray<{ key: RangeKey; label: string }> = [
   { key: "90d", label: "90 dias" },
   { key: "year", label: "Ano" },
 ];
-
-export function parseRange(value: string | null | undefined): RangeKey {
-  if (value === "today" || value === "7d" || value === "90d" || value === "year") return value;
-  return "30d";
-}
-
-export function rangeToDays(r: RangeKey): number {
-  switch (r) {
-    case "today":
-      return 1;
-    case "7d":
-      return 7;
-    case "90d":
-      return 90;
-    case "year":
-      return 365;
-    default:
-      return 30;
-  }
-}
 
 interface Props {
   /** Range atual lido do server (de searchParams) */

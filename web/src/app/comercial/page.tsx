@@ -1,6 +1,6 @@
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { ComercialDashboardClient } from "@/components/comercial/DashboardClient";
-import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
+import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import { getRevenueByDay } from "@/lib/db/admin-dashboard";
 import { getMyLeadCounts } from "@/lib/db/leads";
 import { getMyCommercialContext } from "@/lib/db/sales-agents";

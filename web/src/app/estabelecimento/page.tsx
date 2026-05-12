@@ -2,7 +2,7 @@ import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { EstablishmentDashboardClient } from "@/components/estabelecimento/DashboardClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
+import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import {
   getCheckinsByDay,
   getMyEstablishmentContext,

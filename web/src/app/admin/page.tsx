@@ -1,6 +1,6 @@
 import { AdminDashboardClient } from "@/components/admin/DashboardClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
+import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import {
   getAdminDashboardKPIs,
   getInteractionsByDay,
