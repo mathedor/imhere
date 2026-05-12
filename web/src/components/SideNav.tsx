@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Bell, Compass, LogOut, MessageCircle, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CreditBadge } from "./CreditBadge";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
@@ -12,9 +13,10 @@ import { cn } from "@/lib/utils";
 interface SideNavProps {
   unreadChat?: number;
   unreadNotif?: number;
+  credits?: number;
 }
 
-export function SideNav({ unreadChat = 0, unreadNotif = 0 }: SideNavProps = {}) {
+export function SideNav({ unreadChat = 0, unreadNotif = 0, credits = 0 }: SideNavProps = {}) {
   const pathname = usePathname();
   const items = [
     { href: "/app", label: "Explorar", icon: Compass, desc: "Lugares ao seu redor", badge: 0 },
@@ -90,6 +92,10 @@ export function SideNav({ unreadChat = 0, unreadNotif = 0 }: SideNavProps = {}) 
       </nav>
 
       <div className="mt-auto flex flex-col gap-2">
+        <div className="flex justify-center">
+          <CreditBadge balance={credits} />
+        </div>
+
         <Link href="/app/notificacoes">
           <motion.div
             whileTap={{ scale: 0.97 }}

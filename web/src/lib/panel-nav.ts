@@ -33,6 +33,7 @@ export const NAV_ADMIN: PanelNavItem[] = [
   { href: "/admin/vendas", label: "Vendas & assinaturas", icon: CircleDollarSign },
   { href: "/admin/comerciais", label: "Comerciais", icon: Briefcase },
   { href: "/admin/planos", label: "Planos", icon: Crown },
+  { href: "/admin/creditos", label: "Créditos", icon: Sparkles },
   { href: "/admin/moderacao", label: "Moderação", icon: ShieldCheck, badge: 4 },
   { href: "/admin/relatorios", label: "Relatórios", icon: FileBarChart },
   { href: "/admin/config", label: "Configurações", icon: Settings },
