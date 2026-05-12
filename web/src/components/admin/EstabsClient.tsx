@@ -1,0 +1,183 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Building2, Edit3, Eye, Plus, Search, Star, Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { DataTable, type Column } from "@/components/panel/DataTable";
+
+interface EstabRow {
+  id: string;
+  name: string;
+  type: string;
+  city: string;
+  state: string;
+  rating: number;
+  reviewCount: number;
+  priceLevel: number;
+  openNow: boolean;
+  presentNow: number;
+  cover?: string;
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  bar: "Bar",
+  restaurant: "Restaurante",
+  club: "Balada",
+  show: "Casa de show",
+  lounge: "Lounge",
+};
+
+const columns: Column<EstabRow>[] = [
+  {
+    key: "name",
+    label: "Estabelecimento",
+    sortable: true,
+    render: (e) => (
+      <div className="flex items-center gap-3">
+        <div className="relative size-9 overflow-hidden rounded-xl bg-surface-2">
+          {e.cover && <Image src={e.cover} alt={e.name} fill sizes="36px" className="object-cover" />}
+        </div>
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-text">{e.name}</span>
+          <span className="text-[0.7rem] text-muted">{TYPE_LABEL[e.type] ?? e.type}</span>
+        </div>
+      </div>
+    ),
+  },
+  { key: "city", label: "Cidade", sortable: true, render: (e) => `${e.city}/${e.state}` },
+  {
+    key: "presentNow",
+    label: "Presentes",
+    sortable: true,
+    align: "right",
+    accessor: (e) => e.presentNow,
+    render: (e) => (
+      <span className="flex items-center justify-end gap-1.5 font-bold text-text">
+        {e.presentNow > 0 && <span className="size-1.5 rounded-full bg-success live-dot" />}
+        {e.presentNow}
+      </span>
+    ),
+  },
+  {
+    key: "rating",
+    label: "Rating",
+    sortable: true,
+    align: "right",
+    accessor: (e) => e.rating,
+    render: (e) => (
+      <span className="inline-flex items-center justify-end gap-1">
+        <Star className="size-3 fill-warn text-warn" />
+        {e.rating.toFixed(1)}
+        <span className="text-muted">({e.reviewCount})</span>
+      </span>
+    ),
+  },
+  {
+    key: "priceLevel",
+    label: "Faixa",
+    sortable: true,
+    align: "center",
+    accessor: (e) => e.priceLevel,
+    render: (e) => <span className="text-text">{"$".repeat(Math.max(1, e.priceLevel))}</span>,
+  },
+  {
+    key: "openNow",
+    label: "Status",
+    sortable: true,
+    accessor: (e) => (e.openNow ? 1 : 0),
+    render: (e) =>
+      e.openNow ? (
+        <span className="rounded-pill bg-success/15 px-2 py-0.5 text-[0.65rem] font-bold text-success">Aberto</span>
+      ) : (
+        <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-[0.65rem] font-bold text-muted">Fechado</span>
+      ),
+  },
+  {
+    key: "actions",
+    label: "Ações",
+    align: "right",
+    render: (e) => (
+      <div className="flex items-center justify-end gap-1.5">
+        <Link
+          href={`/admin/estabelecimentos/${e.id}`}
+          className="inline-flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand transition-colors hover:bg-brand hover:text-white"
+        >
+          <Eye className="size-3" />
+          360
+        </Link>
+        <Link
+          href={`/admin/estabelecimentos/${e.id}/editar`}
+          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-text"
+        >
+          <Edit3 className="size-3.5" />
+        </Link>
+        <button className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-brand">
+          <Trash2 className="size-3.5" />
+        </button>
+      </div>
+    ),
+  },
+];
+
+export function EstabsClient({ rows }: { rows: EstabRow[] }) {
+  const [q, setQ] = useState("");
+  const filtered = rows.filter(
+    (e) =>
+      !q ||
+      e.name.toLowerCase().includes(q.toLowerCase()) ||
+      e.city.toLowerCase().includes(q.toLowerCase())
+  );
+
+  const active = rows.filter((e) => e.openNow).length;
+  const total = rows.length;
+
+  return (
+    <>
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "Total", value: String(total), color: "#3b82f6" },
+          { label: "Abertos agora", value: String(active), color: "#22c55e" },
+          { label: "Com check-in", value: String(rows.filter((e) => e.presentNow > 0).length), color: "#a855f7" },
+          { label: "Sem presença", value: String(rows.filter((e) => e.presentNow === 0).length), color: "#6b6b75" },
+        ].map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            className="rounded-2xl border border-border bg-surface p-4"
+          >
+            <div className="flex items-center gap-2">
+              <Building2 className="size-4" style={{ color: s.color }} />
+              <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted">{s.label}</span>
+            </div>
+            <p className="mt-1 text-2xl font-black text-text">{s.value}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex h-11 flex-1 items-center gap-3 rounded-pill border border-border bg-surface px-4">
+          <Search className="size-4 text-muted" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar estabelecimento..."
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
+          />
+        </div>
+        <Link
+          href="/admin/estabelecimentos/novo"
+          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow transition-transform hover:-translate-y-0.5"
+        >
+          <Plus className="size-4" />
+          Novo
+        </Link>
+      </div>
+
+      <DataTable columns={columns} data={filtered} rowKey={(e) => e.id} pageSize={10} />
+    </>
+  );
+}

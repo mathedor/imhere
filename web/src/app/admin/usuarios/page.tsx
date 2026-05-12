@@ -1,133 +1,52 @@
-"use client";
-
-import { Edit3, Eye, Search, Trash2, UserPlus } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { DataTable, type Column } from "@/components/panel/DataTable";
+import { UsuariosClient } from "@/components/admin/UsuariosClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { users, AppUser } from "@/data/users";
+import { listAllProfiles } from "@/lib/db/admin-queries";
+import { isMockMode } from "@/lib/supabase/config";
 import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
+import { users as mockUsers } from "@/data/users";
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  open: { bg: "rgba(34,197,94,0.15)", color: "#22c55e", label: "Aberto" },
-  watching: { bg: "rgba(245,158,11,0.15)", color: "#f59e0b", label: "Observando" },
-  invisible: { bg: "rgba(107,107,117,0.20)", color: "#b8b8c0", label: "Invisível" },
-};
+export const dynamic = "force-dynamic";
 
-const columns: Column<AppUser>[] = [
-  {
-    key: "name",
-    label: "Usuário",
-    sortable: true,
-    render: (u) => (
-      <div className="flex items-center gap-3">
-        <div className="relative size-9 overflow-hidden rounded-full">
-          <Image src={u.photo} alt={u.name} fill sizes="36px" className="object-cover" />
-        </div>
-        <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-text">{u.name}</span>
-          <span className="text-[0.7rem] text-muted">{u.profession}</span>
-        </div>
-      </div>
-    ),
-  },
-  { key: "age", label: "Idade", sortable: true, align: "center", accessor: (u) => u.age, width: "80px" },
-  {
-    key: "gender",
-    label: "Gênero",
-    sortable: true,
-    align: "center",
-    render: (u) => (
-      <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-[0.7rem] font-semibold">
-        {u.gender === "male" ? "M" : u.gender === "female" ? "F" : "Outro"}
-      </span>
-    ),
-  },
-  { key: "city", label: "Cidade", sortable: true, render: (u) => `${u.city}/${u.state}` },
-  {
-    key: "status",
-    label: "Status",
-    sortable: true,
-    render: (u) => {
-      const s = STATUS_STYLES[u.status];
-      return (
-        <span
-          className="rounded-pill px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider"
-          style={{ background: s.bg, color: s.color }}
-        >
-          {s.label}
-        </span>
-      );
-    },
-  },
-  {
-    key: "actions",
-    label: "Ações",
-    align: "right",
-    render: (u) => (
-      <div className="flex items-center justify-end gap-1.5">
-        <Link
-          href={`/admin/usuarios/${u.id}`}
-          className="inline-flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand transition-colors hover:bg-brand hover:text-white"
-          title="Ver perfil 360"
-        >
-          <Eye className="size-3" />
-          360
-        </Link>
-        <Link
-          href={`/admin/usuarios/${u.id}/editar`}
-          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-text"
-          title="Editar"
-        >
-          <Edit3 className="size-3.5" />
-        </Link>
-        <button
-          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-brand"
-          title="Excluir"
-        >
-          <Trash2 className="size-3.5" />
-        </button>
-      </div>
-    ),
-  },
-];
+export default async function UsuariosAdminPage() {
+  const profiles = isMockMode() ? [] : await listAllProfiles();
 
-export default function UsuariosPage() {
-  const [q, setQ] = useState("");
-  const filtered = users.filter(
-    (u) => !q || u.name.toLowerCase().includes(q.toLowerCase()) || u.profession.toLowerCase().includes(q.toLowerCase())
-  );
+  const rows = isMockMode()
+    ? mockUsers.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: `${u.id}@imhere.app`,
+        age: u.age,
+        gender: u.gender,
+        city: u.city,
+        state: u.state,
+        profession: u.profession,
+        status: u.status,
+        role: "user",
+        photo: u.photo,
+      }))
+    : profiles.map((p) => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        gender: p.gender ?? undefined,
+        city: p.city ?? undefined,
+        state: p.state ?? undefined,
+        profession: p.profession ?? undefined,
+        status: p.status,
+        role: p.role,
+        photo: p.photo_url ?? undefined,
+      }));
 
   return (
     <PanelLayout
       scope="admin"
       title="Usuários"
-      subtitle="12.418 cadastrados · 7.842 ativos nos últimos 30 dias"
+      subtitle={`${rows.length.toLocaleString("pt-BR")} cadastrados`}
       nav={NAV_ADMIN}
       quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex h-11 flex-1 items-center gap-3 rounded-pill border border-border bg-surface px-4">
-          <Search className="size-4 text-muted" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por nome, profissão, e-mail..."
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
-          />
-        </div>
-        <Link
-          href="/admin/usuarios/novo"
-          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow transition-transform hover:-translate-y-0.5"
-        >
-          <UserPlus className="size-4" />
-          Novo usuário
-        </Link>
-      </div>
-
-      <DataTable columns={columns} data={filtered} rowKey={(u) => u.id} pageSize={10} />
+      <UsuariosClient users={rows} total={rows.length} />
     </PanelLayout>
   );
 }
