@@ -12,7 +12,7 @@ import {
   revenueByDay,
   usersByDay,
 } from "@/data/analytics";
-import { NAV_ADMIN } from "../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 const REPORTS = [
   { key: "revenue", label: "Receita", color: "#22c55e", data: revenueByDay, fmt: (v: number) => `R$ ${v.toLocaleString("pt-BR")}` },
@@ -34,6 +34,7 @@ export default function RelatoriosPage() {
       title="Relatórios"
       subtitle="Gere relatórios filtrados e exporte para análise externa"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <section className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">

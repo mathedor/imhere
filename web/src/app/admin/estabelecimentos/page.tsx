@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2, Edit3, MoreVertical, Plus, Search, Star, Trash2 } from "lucide-react";
+import { Building2, Edit3, Eye, Plus, Search, Star, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments, typeLabel } from "@/data/establishments";
-import { NAV_ADMIN } from "../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 const columns: Column<(typeof establishments)[number]>[] = [
   {
@@ -83,16 +83,28 @@ const columns: Column<(typeof establishments)[number]>[] = [
     key: "actions",
     label: "Ações",
     align: "right",
-    render: () => (
-      <div className="flex justify-end gap-1">
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-text">
+    render: (e) => (
+      <div className="flex items-center justify-end gap-1.5">
+        <Link
+          href={`/admin/estabelecimentos/${e.id}`}
+          className="inline-flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand transition-colors hover:bg-brand hover:text-white"
+          title="Ver 360"
+        >
+          <Eye className="size-3" />
+          360
+        </Link>
+        <Link
+          href={`/admin/estabelecimentos/${e.id}/editar`}
+          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-text"
+          title="Editar"
+        >
           <Edit3 className="size-3.5" />
-        </button>
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-brand">
+        </Link>
+        <button
+          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-brand"
+          title="Excluir"
+        >
           <Trash2 className="size-3.5" />
-        </button>
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-text">
-          <MoreVertical className="size-3.5" />
         </button>
       </div>
     ),
@@ -100,7 +112,6 @@ const columns: Column<(typeof establishments)[number]>[] = [
 ];
 
 export default function EstabelecimentosAdminPage() {
-  const router = useRouter();
   const [q, setQ] = useState("");
   const filtered = establishments.filter(
     (e) => !q || e.name.toLowerCase().includes(q.toLowerCase()) || e.city.toLowerCase().includes(q.toLowerCase())
@@ -112,6 +123,7 @@ export default function EstabelecimentosAdminPage() {
       title="Estabelecimentos"
       subtitle="480 cadastrados · 312 com check-ins esta semana"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -152,22 +164,16 @@ export default function EstabelecimentosAdminPage() {
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
           />
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow"
+        <Link
+          href="/admin/estabelecimentos/novo"
+          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow transition-transform hover:-translate-y-0.5"
         >
           <Plus className="size-4" />
           Novo
-        </motion.button>
+        </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        rowKey={(e) => e.id}
-        pageSize={10}
-        onRowClick={(e) => router.push(`/admin/estabelecimentos/${e.id}`)}
-      />
+      <DataTable columns={columns} data={filtered} rowKey={(e) => e.id} pageSize={10} />
     </PanelLayout>
   );
 }

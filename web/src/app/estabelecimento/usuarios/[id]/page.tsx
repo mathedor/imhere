@@ -22,7 +22,7 @@ import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
 import { presentByEstablishment, users } from "@/data/users";
 import { cn } from "@/lib/utils";
-import { NAV_ESTAB } from "../../page";
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -71,6 +71,7 @@ export default function EstabelecimentoUsuarioPage() {
           : "Visitante recorrente do seu estabelecimento"
       }
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <Link

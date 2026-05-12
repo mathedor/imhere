@@ -1,14 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Edit3, MoreVertical, Search, Trash2, UserPlus } from "lucide-react";
+import { Edit3, Eye, Search, Trash2, UserPlus } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { users, AppUser } from "@/data/users";
-import { NAV_ADMIN } from "../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   open: { bg: "rgba(34,197,94,0.15)", color: "#22c55e", label: "Aberto" },
@@ -63,40 +62,31 @@ const columns: Column<AppUser>[] = [
     },
   },
   {
-    key: "plan",
-    label: "Plano",
-    sortable: true,
-    accessor: (u) => (parseInt(u.id.length.toString()) % 3 === 0 ? "Premium" : "Free"),
-    render: (u) => {
-      const plan = parseInt(u.id.length.toString()) % 3 === 0 ? "Premium" : "Free";
-      return (
-        <span
-          className="rounded-pill px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider"
-          style={
-            plan === "Premium"
-              ? { background: "rgba(239,44,57,0.15)", color: "#ef2c39" }
-              : { background: "rgba(107,107,117,0.20)", color: "#b8b8c0" }
-          }
-        >
-          {plan}
-        </span>
-      );
-    },
-  },
-  {
     key: "actions",
     label: "Ações",
     align: "right",
-    render: () => (
-      <div className="flex justify-end gap-1">
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-text">
+    render: (u) => (
+      <div className="flex items-center justify-end gap-1.5">
+        <Link
+          href={`/admin/usuarios/${u.id}`}
+          className="inline-flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand transition-colors hover:bg-brand hover:text-white"
+          title="Ver perfil 360"
+        >
+          <Eye className="size-3" />
+          360
+        </Link>
+        <Link
+          href={`/admin/usuarios/${u.id}/editar`}
+          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-text"
+          title="Editar"
+        >
           <Edit3 className="size-3.5" />
-        </button>
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-brand">
+        </Link>
+        <button
+          className="grid size-7 place-items-center rounded-lg border border-border text-text-soft hover:border-brand/40 hover:text-brand"
+          title="Excluir"
+        >
           <Trash2 className="size-3.5" />
-        </button>
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:bg-white/[0.04] hover:text-text">
-          <MoreVertical className="size-3.5" />
         </button>
       </div>
     ),
@@ -104,7 +94,6 @@ const columns: Column<AppUser>[] = [
 ];
 
 export default function UsuariosPage() {
-  const router = useRouter();
   const [q, setQ] = useState("");
   const filtered = users.filter(
     (u) => !q || u.name.toLowerCase().includes(q.toLowerCase()) || u.profession.toLowerCase().includes(q.toLowerCase())
@@ -116,6 +105,7 @@ export default function UsuariosPage() {
       title="Usuários"
       subtitle="12.418 cadastrados · 7.842 ativos nos últimos 30 dias"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -128,22 +118,16 @@ export default function UsuariosPage() {
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
           />
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow"
+        <Link
+          href="/admin/usuarios/novo"
+          className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow transition-transform hover:-translate-y-0.5"
         >
           <UserPlus className="size-4" />
           Novo usuário
-        </motion.button>
+        </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        rowKey={(u) => u.id}
-        pageSize={10}
-        onRowClick={(u) => router.push(`/admin/usuarios/${u.id}`)}
-      />
+      <DataTable columns={columns} data={filtered} rowKey={(u) => u.id} pageSize={10} />
     </PanelLayout>
   );
 }

@@ -21,21 +21,11 @@ import { useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout, type PanelNavItem } from "@/components/panel/PanelLayout";
+import { PanelLayout } from "@/components/panel/PanelLayout";
 import { checkinsByDay } from "@/data/analytics";
 import { establishments, momentoByEstablishment } from "@/data/establishments";
 import { presentByEstablishment, users } from "@/data/users";
-
-export const NAV_ESTAB: PanelNavItem[] = [
-  { href: "/estabelecimento", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/estabelecimento/perfil", label: "Perfil & itens", icon: Sparkles },
-  { href: "/estabelecimento/pessoas", label: "Pessoas no local", icon: Users, badge: 187 },
-  { href: "/estabelecimento/momento", label: "No Momento", icon: Camera, badge: "NEW" },
-  { href: "/estabelecimento/cortesias", label: "Mensagens & cortesias", icon: Gift, badge: 3 },
-  { href: "/estabelecimento/premium-casa", label: "Premium da Casa", icon: Crown },
-  { href: "/estabelecimento/relatorios", label: "Relatórios", icon: BarChart3 },
-  { href: "/estabelecimento/avaliacoes", label: "Avaliações", icon: Star },
-];
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -51,6 +41,7 @@ export default function EstabelecimentoDashboard() {
       title={MY_PLACE.name}
       subtitle={`${MY_PLACE.address} · ${MY_PLACE.city}/${MY_PLACE.state}`}
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

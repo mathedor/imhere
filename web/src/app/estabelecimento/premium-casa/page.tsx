@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { cn } from "@/lib/utils";
-import { NAV_ESTAB } from "../page";
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 interface CasaPerk {
   id: string;
@@ -105,6 +105,7 @@ export default function PremiumCasaPage() {
       title="Premium da Casa"
       subtitle="Features que você compra e libera grátis a TODOS os usuários com check-in aqui"
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <section className="mb-6 overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-brand/15 via-brand/5 to-transparent p-5 md:p-7">

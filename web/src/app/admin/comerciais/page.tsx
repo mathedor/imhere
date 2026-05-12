@@ -5,7 +5,7 @@ import { Mail, Plus, Trophy } from "lucide-react";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { salesAgents } from "@/data/analytics";
-import { NAV_ADMIN } from "../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 type Row = (typeof salesAgents)[number];
 
@@ -59,6 +59,7 @@ export default function ComerciaisPage() {
       title="Comerciais"
       subtitle="Equipe de vendas que cadastra e gerencia estabelecimentos"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

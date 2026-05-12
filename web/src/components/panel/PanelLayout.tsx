@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
+import { PanelBottomNav, type PanelQuickItem } from "./PanelBottomNav";
 
 export interface PanelNavItem {
   href: string;
@@ -19,6 +20,8 @@ interface PanelLayoutProps {
   title: string;
   subtitle?: string;
   nav: PanelNavItem[];
+  /** Quick items pra bottom nav mobile. Se omitido, sem bottom nav. */
+  quickNav?: PanelQuickItem[];
   scope: "estabelecimento" | "comercial" | "admin";
   user: { name: string; role: string; photo?: string };
   children: React.ReactNode;
@@ -30,7 +33,7 @@ const scopeColors: Record<PanelLayoutProps["scope"], string> = {
   comercial: "linear-gradient(135deg, #a855f7, #7c3aed)",
 };
 
-export function PanelLayout({ title, subtitle, nav, scope, user, children }: PanelLayoutProps) {
+export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, children }: PanelLayoutProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -166,8 +169,10 @@ export function PanelLayout({ title, subtitle, nav, scope, user, children }: Pan
           </button>
         </header>
 
-        <main className="flex-1 px-5 py-6 md:px-8 md:py-8">{children}</main>
+        <main className={cn("flex-1 px-5 py-6 md:px-8 md:py-8", quickNav && "pb-28 md:pb-8")}>{children}</main>
       </div>
+
+      {quickNav && <PanelBottomNav items={quickNav} onMenu={() => setMobileOpen(true)} scope={scope} />}
     </div>
   );
 }

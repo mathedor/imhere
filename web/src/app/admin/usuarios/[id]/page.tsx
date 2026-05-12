@@ -30,7 +30,7 @@ import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
 import { presentByEstablishment, users } from "@/data/users";
 import { cn } from "@/lib/utils";
-import { NAV_ADMIN } from "../../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface Activity {
   id: string;
@@ -96,6 +96,7 @@ export default function AdminUsuarioPage() {
       title={`Usuário · ${user.name}`}
       subtitle={`ID ${user.id} · perfil 360 com logs completos`}
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <Link href="/admin/usuarios" className="mb-4 inline-flex items-center gap-1 text-xs text-text-soft hover:text-text">

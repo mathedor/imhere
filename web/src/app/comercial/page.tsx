@@ -18,18 +18,9 @@ import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout, type PanelNavItem } from "@/components/panel/PanelLayout";
+import { PanelLayout } from "@/components/panel/PanelLayout";
 import { revenueByDay, topEstablishments } from "@/data/analytics";
-
-export const NAV_COMERCIAL: PanelNavItem[] = [
-  { href: "/comercial", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/comercial/estabelecimentos", label: "Meus estab.", icon: Building2, badge: 19 },
-  { href: "/comercial/novo", label: "Cadastrar novo", icon: Plus },
-  { href: "/comercial/pipeline", label: "Pipeline", icon: Target, badge: 7 },
-  { href: "/comercial/comissoes", label: "Comissões", icon: CircleDollarSign },
-  { href: "/comercial/relatorios", label: "Relatórios", icon: BarChart3 },
-  { href: "/comercial/clientes", label: "Contatos", icon: Users },
-];
+import { NAV_COMERCIAL, QUICK_COMERCIAL } from "@/lib/panel-nav";
 
 interface Row {
   id: string;
@@ -122,6 +113,7 @@ export default function ComercialDashboard() {
       title="Painel Comercial"
       subtitle="Acompanhe estabelecimentos, vendas e comissões"
       nav={NAV_COMERCIAL}
+      quickNav={QUICK_COMERCIAL}
       user={{ name: "Renata Vidal", role: "Executiva de contas" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

@@ -9,7 +9,7 @@ import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments } from "@/data/establishments";
 import { presentByEstablishment, users, AppUser } from "@/data/users";
 import { cn } from "@/lib/utils";
-import { NAV_ESTAB } from "../page";
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -36,6 +36,7 @@ export default function PessoasPage() {
       title="Pessoas no local agora"
       subtitle={`${present.length} pessoas com check-in ativo · atualiza em tempo real`}
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <div className="mb-5 flex items-center gap-3">

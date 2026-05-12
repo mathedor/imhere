@@ -22,7 +22,7 @@ import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout, type PanelNavItem } from "@/components/panel/PanelLayout";
+import { PanelLayout } from "@/components/panel/PanelLayout";
 import {
   interactionsByDay,
   planDistribution,
@@ -30,18 +30,7 @@ import {
   revenueByDay,
   usersByDay,
 } from "@/data/analytics";
-
-export const NAV_ADMIN: PanelNavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/usuarios", label: "Usuários", icon: Users, badge: "12k" },
-  { href: "/admin/estabelecimentos", label: "Estabelecimentos", icon: Building2, badge: 480 },
-  { href: "/admin/vendas", label: "Vendas & assinaturas", icon: CircleDollarSign },
-  { href: "/admin/comerciais", label: "Comerciais", icon: Briefcase },
-  { href: "/admin/planos", label: "Planos", icon: Crown },
-  { href: "/admin/moderacao", label: "Moderação", icon: ShieldCheck, badge: 4 },
-  { href: "/admin/relatorios", label: "Relatórios", icon: FileBarChart },
-  { href: "/admin/config", label: "Configurações", icon: Settings },
-];
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface SubRow {
   id: string;
@@ -122,6 +111,7 @@ export default function AdminDashboard() {
       title="Visão geral da plataforma"
       subtitle="Saúde do produto, vendas e operação em tempo real"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

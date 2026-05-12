@@ -8,7 +8,7 @@ import { AddressFieldset } from "@/components/AddressFieldset";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import { MaskedInput } from "@/components/MaskedInput";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_COMERCIAL } from "../page";
+import { NAV_COMERCIAL, QUICK_COMERCIAL } from "@/lib/panel-nav";
 
 export default function NovoEstabelecimentoPage() {
   const [saved, setSaved] = useState(false);
@@ -25,6 +25,7 @@ export default function NovoEstabelecimentoPage() {
       title="Cadastrar estabelecimento"
       subtitle="Após cadastrado, o estabelecimento recebe acesso ao próprio painel"
       nav={NAV_COMERCIAL}
+      quickNav={QUICK_COMERCIAL}
       user={{ name: "Renata Vidal", role: "Executiva de contas" }}
     >
       <Link

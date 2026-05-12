@@ -9,7 +9,7 @@ import { KpiCard } from "@/components/panel/KpiCard";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { recentSubscriptions, revenueByDay } from "@/data/analytics";
 import { CircleDollarSign, RefreshCcw, TrendingDown, TrendingUp } from "lucide-react";
-import { NAV_ADMIN } from "../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 const PLAN_COLORS: Record<string, string> = {
   Free: "#6b6b75",
@@ -79,6 +79,7 @@ export default function VendasPage() {
       title="Vendas & assinaturas"
       subtitle="Receita, churn e detalhamento de cobranças"
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

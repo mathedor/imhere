@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { establishments, momentoByEstablishment, MomentoPost } from "@/data/establishments";
-import { NAV_ESTAB } from "../page";
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -38,6 +38,7 @@ export default function MomentoPage() {
       title="No Momento"
       subtitle="Stories ao vivo do seu estabelecimento · expira em 4h"
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">

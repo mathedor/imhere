@@ -33,7 +33,7 @@ import { PanelLayout } from "@/components/panel/PanelLayout";
 import { checkinsByDay } from "@/data/analytics";
 import { establishments, momentoByEstablishment, typeLabel } from "@/data/establishments";
 import { presentByEstablishment, users, AppUser } from "@/data/users";
-import { NAV_ADMIN } from "../../page";
+import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 interface CheckinLog {
   id: string;
@@ -175,6 +175,7 @@ export default function AdminEstabelecimentoPage() {
       title={`Estabelecimento · ${place.name}`}
       subtitle={`${place.address} · ${place.city}/${place.state}`}
       nav={NAV_ADMIN}
+      quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <Link

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { presentByEstablishment, users } from "@/data/users";
 import { establishments } from "@/data/establishments";
-import { NAV_ESTAB } from "../page";
+import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -35,6 +35,7 @@ export default function CortesiasPage() {
       title="Mensagens & cortesias"
       subtitle="Envie convites, descontos e atrações pros usuários no seu estabelecimento"
       nav={NAV_ESTAB}
+      quickNav={QUICK_ESTAB}
       user={{ name: "Carla Pires", role: "Gerente" }}
     >
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
