@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* DARK MODE (default) */
   --color-bg: #0a0a0b;
   --color-surface: #131316;
   --color-surface-2: #1c1c20;
@@ -25,6 +26,38 @@
   --shadow-soft: 0 8px 30px -12px rgba(0, 0, 0, 0.6);
 
   --font-display: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* LIGHT MODE — usa html[data-theme="light"] */
+html[data-theme="light"] {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f6;
+  --color-surface-3: #e7e7eb;
+  --color-border: #e5e5ea;
+  --color-muted: #8e8e96;
+  --color-text: #0d0d10;
+  --color-text-soft: #45454e;
+
+  --shadow-glow: 0 10px 40px -10px rgba(239, 44, 57, 0.30);
+  --shadow-soft: 0 8px 30px -12px rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(1200px 600px at -10% -10%, rgba(239, 44, 57, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, rgba(239, 44, 57, 0.06), transparent 60%),
+    var(--color-bg);
+}
+
+html[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="light"] .glass-strong {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 * {

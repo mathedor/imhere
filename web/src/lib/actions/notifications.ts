@@ -11,12 +11,35 @@ export async function markAllNotificationsReadAction() {
     data: { user },
   } = await sb.auth.getUser();
   if (!user) return;
+
+  // Marca todas notifications como lidas
   await sb
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("profile_id", user.id)
     .is("read_at", null);
+
+  // Marca conversas como lidas (zera badge chat)
+  const { data: myConvs } = await sb
+    .from("conversations")
+    .select("id")
+    .contains("participants", [user.id]);
+
+  if (myConvs && myConvs.length > 0) {
+    await sb
+      .from("messages")
+      .update({ status: "read" })
+      .in(
+        "conversation_id",
+        myConvs.map((c) => c.id)
+      )
+      .neq("sender_id", user.id)
+      .neq("status", "read");
+  }
+
   revalidatePath("/app/notificacoes");
+  revalidatePath("/app/chat");
+  revalidatePath("/app");
 }
 
 export async function markNotificationReadAction(formData: FormData) {

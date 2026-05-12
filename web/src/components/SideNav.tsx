@@ -5,35 +5,43 @@ import { Bell, Compass, LogOut, MessageCircle, Sparkles, User } from "lucide-rea
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
 
-const items = [
-  { href: "/app", label: "Explorar", icon: Compass, desc: "Lugares ao seu redor" },
-  { href: "/app/chat", label: "Chat", icon: MessageCircle, desc: "Suas conversas", badge: 3 },
-  { href: "/app/planos", label: "Planos", icon: Sparkles, desc: "Liberar recursos" },
-  { href: "/app/perfil", label: "Perfil", icon: User, desc: "Seu cadastro" },
-] as const;
+interface SideNavProps {
+  unreadChat?: number;
+  unreadNotif?: number;
+}
 
-export function SideNav() {
+export function SideNav({ unreadChat = 0, unreadNotif = 0 }: SideNavProps = {}) {
   const pathname = usePathname();
+  const items = [
+    { href: "/app", label: "Explorar", icon: Compass, desc: "Lugares ao seu redor", badge: 0 },
+    { href: "/app/chat", label: "Chat", icon: MessageCircle, desc: "Suas conversas", badge: unreadChat },
+    { href: "/app/planos", label: "Planos", icon: Sparkles, desc: "Liberar recursos", badge: 0 },
+    { href: "/app/perfil", label: "Perfil", icon: User, desc: "Seu cadastro", badge: 0 },
+  ];
 
   return (
     <aside className="hidden md:flex sticky top-0 h-dvh w-72 shrink-0 flex-col border-r border-border bg-surface/40 px-5 py-6 backdrop-blur-sm">
-      <Link href="/app" className="mb-8 inline-flex">
-        <Logo size={36} />
-      </Link>
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/app" className="inline-flex">
+          <Logo size={36} />
+        </Link>
+        <ThemeToggle compact />
+      </div>
 
       <nav className="flex flex-col gap-1">
         {items.map((item) => {
-          const active =
-            item.href === "/app" ? pathname === "/app" : pathname.startsWith(item.href);
+          const active = item.href === "/app" ? pathname === "/app" : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link key={item.href} href={item.href} className="relative">
               <motion.div
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ x: 4 }}
+                transition={{ type: "spring", stiffness: 400, damping: 18 }}
                 className={cn(
                   "relative flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors",
                   active ? "text-white" : "text-text-soft hover:bg-white/[0.04] hover:text-text"
@@ -65,7 +73,7 @@ export function SideNav() {
                     {item.desc}
                   </p>
                 </div>
-                {"badge" in item && item.badge ? (
+                {item.badge > 0 && (
                   <span
                     className={cn(
                       "grid size-5 shrink-0 place-items-center rounded-full text-[0.65rem] font-bold",
@@ -74,7 +82,7 @@ export function SideNav() {
                   >
                     {item.badge}
                   </span>
-                ) : null}
+                )}
               </motion.div>
             </Link>
           );
@@ -82,25 +90,32 @@ export function SideNav() {
       </nav>
 
       <div className="mt-auto flex flex-col gap-2">
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          whileHover={{ y: -1 }}
-          className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 text-left transition-colors hover:border-brand/40"
-        >
-          <div className="relative grid size-9 place-items-center rounded-xl bg-surface-2">
-            <Bell className="size-4 text-text" />
-            <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-brand live-dot" />
-          </div>
-          <div className="min-w-0 flex-1 text-sm font-semibold text-text">Notificações</div>
-          <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[0.65rem] font-bold text-brand">
-            2 novas
-          </span>
-        </motion.button>
+        <Link href="/app/notificacoes">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ y: -2 }}
+            transition={{ type: "spring", stiffness: 400, damping: 16 }}
+            className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 text-left transition-colors hover:border-brand/40"
+          >
+            <div className="relative grid size-9 place-items-center rounded-xl bg-surface-2">
+              <Bell className="size-4 text-text" />
+              {unreadNotif > 0 && (
+                <span className="absolute right-1 top-1 size-1.5 rounded-full bg-brand live-dot" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1 text-sm font-semibold text-text">Notificações</div>
+            {unreadNotif > 0 && (
+              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[0.65rem] font-bold text-brand">
+                {unreadNotif} nova{unreadNotif > 1 ? "s" : ""}
+              </span>
+            )}
+          </motion.div>
+        </Link>
 
         <form action={signOutAction}>
           <motion.button
             type="submit"
-            whileTap={{ scale: 0.97 }}
+            whileTap={{ scale: 0.95 }}
             className="flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-sm text-muted transition-colors hover:text-text"
           >
             <LogOut className="size-4" />

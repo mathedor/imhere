@@ -38,9 +38,11 @@ export function PanelBottomNav({ items, onMenu, scope }: Props) {
           return (
             <Link key={item.href} href={item.href} className="relative flex flex-1 items-center justify-center">
               <motion.div
-                whileTap={{ scale: 0.92 }}
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 420, damping: 18 }}
                 className={cn(
-                  "relative flex h-12 w-full items-center justify-center gap-1.5 rounded-2xl px-1 transition-colors",
+                  "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1",
                   active ? "text-white" : "text-text-soft hover:text-text"
                 )}
               >
@@ -53,13 +55,13 @@ export function PanelBottomNav({ items, onMenu, scope }: Props) {
                   />
                 )}
                 <Icon className="size-[18px] shrink-0" />
-                <span className={cn("text-[10px] font-bold whitespace-nowrap", active ? "opacity-100" : "opacity-0 absolute")}>
+                <span className="text-[10px] font-bold leading-none whitespace-nowrap">
                   {item.label}
                 </span>
                 {item.badge && (
                   <span
                     className={cn(
-                      "absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full px-1 text-[0.55rem] font-bold ring-2 ring-bg",
+                      "absolute right-1 top-1 grid min-w-4 place-items-center rounded-full px-1 text-[0.55rem] font-bold ring-2 ring-bg",
                       active ? "bg-white text-text" : "bg-brand text-white"
                     )}
                   >
@@ -73,10 +75,13 @@ export function PanelBottomNav({ items, onMenu, scope }: Props) {
 
         <button onClick={onMenu} className="relative flex flex-1 items-center justify-center">
           <motion.div
-            whileTap={{ scale: 0.92 }}
-            className="flex h-12 w-full items-center justify-center gap-1.5 rounded-2xl px-1 text-text-soft hover:text-text"
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ y: -2 }}
+            transition={{ type: "spring", stiffness: 420, damping: 18 }}
+            className="flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-text-soft hover:text-text"
           >
             <Menu className="size-[18px]" />
+            <span className="text-[10px] font-bold leading-none">Menu</span>
           </motion.div>
         </button>
       </div>
