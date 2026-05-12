@@ -13,9 +13,10 @@ interface Props {
   establishments: Establishment[];
   totalOnline: number;
   isPremium?: boolean;
+  credits?: number;
 }
 
-export function HomeClient({ establishments, totalOnline, isPremium = false }: Props) {
+export function HomeClient({ establishments, totalOnline, isPremium = false, credits = 0 }: Props) {
   const router = useRouter();
   const [sort, setSort] = useState<SortKey>("nearest");
   const [nearbyOnly, setNearbyOnly] = useState(false);
@@ -127,7 +128,7 @@ export function HomeClient({ establishments, totalOnline, isPremium = false }: P
       <section className="flex flex-wrap items-center justify-between gap-2">
         <NearbyButton active={nearbyOnly} onClick={() => setNearbyOnly((v) => !v)} />
         <div className="flex items-center gap-2">
-          <AdvancedFilters isPremium={isPremium} value={filters} onChange={setFilters} />
+          <AdvancedFilters isPremium={isPremium} balance={credits} value={filters} onChange={setFilters} />
           <SortMenu value={sort} onChange={setSort} />
         </div>
       </section>

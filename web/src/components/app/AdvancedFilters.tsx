@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Filter, Lock, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { CreditConfirmDialog } from "@/components/CreditConfirmDialog";
+import { spendCreditsAction } from "@/lib/actions/credits";
 import { cn } from "@/lib/utils";
 
 export interface AdvancedFilterValues {
@@ -20,15 +22,35 @@ const DEFAULT: AdvancedFilterValues = {
   onlyOpen: false,
 };
 
+const FILTERS_COST = 20;
+const FILTERS_UNLOCK_HOURS = 24;
+const STORAGE_KEY = "imhere-filters-unlocked-until";
+
 interface Props {
   isPremium: boolean;
   value: AdvancedFilterValues;
   onChange: (v: AdvancedFilterValues) => void;
+  /** Saldo atual em créditos — usado pra pay-as-you-go */
+  balance?: number;
 }
 
-export function AdvancedFilters({ isPremium, value, onChange }: Props) {
+export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Props) {
   const [open, setOpen] = useState(false);
+  const [creditUnlockedUntil, setCreditUnlockedUntil] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [currentBalance, setCurrentBalance] = useState(balance);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const ts = Number(stored);
+      if (Number.isFinite(ts) && ts > Date.now()) setCreditUnlockedUntil(ts);
+    }
+  }, []);
+
+  const creditUnlocked = creditUnlockedUntil !== null && creditUnlockedUntil > Date.now();
+  const unlocked = isPremium || creditUnlocked;
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -37,6 +59,23 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  async function handleCreditUnlock() {
+    const result = await spendCreditsAction("discovery:advanced_filters");
+    if (result.success) {
+      const until = Date.now() + FILTERS_UNLOCK_HOURS * 3600 * 1000;
+      localStorage.setItem(STORAGE_KEY, String(until));
+      setCreditUnlockedUntil(until);
+      setCurrentBalance(result.newBalance);
+    } else {
+      alert(result.message);
+    }
+  }
+
+  function hoursLeft() {
+    if (!creditUnlockedUntil) return 0;
+    return Math.max(0, Math.ceil((creditUnlockedUntil - Date.now()) / 3600_000));
+  }
 
   const activeCount =
     (value.gender !== "all" ? 1 : 0) +
@@ -56,9 +95,14 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
             : "border-border bg-surface text-text hover:border-brand/40"
         )}
       >
-        {isPremium ? <Filter className="size-4" /> : <Crown className="size-4 text-warn" />}
+        {unlocked ? <Filter className="size-4" /> : <Crown className="size-4 text-warn" />}
         <span className="hidden sm:inline">Filtros</span>
-        {!isPremium && (
+        {!isPremium && creditUnlocked && (
+          <span className="rounded-pill bg-success/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-success">
+            {hoursLeft()}h
+          </span>
+        )}
+        {!unlocked && (
           <span className="rounded-pill bg-warn/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-warn">
             VIP
           </span>
@@ -83,9 +127,14 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
               <div className="flex items-center gap-2">
                 <Filter className="size-4 text-brand" />
                 <h3 className="text-sm font-bold text-text">Filtros avançados</h3>
-                {!isPremium && (
+                {isPremium && (
                   <span className="rounded-pill bg-warn/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-warn">
-                    Premium
+                    VIP
+                  </span>
+                )}
+                {!isPremium && creditUnlocked && (
+                  <span className="rounded-pill bg-success/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-success">
+                    Liberado {hoursLeft()}h
                   </span>
                 )}
               </div>
@@ -94,23 +143,32 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
               </button>
             </header>
 
-            {!isPremium && (
+            {!unlocked && (
               <div className="mb-4 rounded-xl border border-warn/30 bg-warn/10 p-3 text-center">
                 <Lock className="mx-auto mb-1 size-5 text-warn" />
                 <p className="text-xs font-bold text-text">Recurso Premium / VIP</p>
                 <p className="mt-0.5 text-[0.65rem] text-text-soft">
                   Filtre por gênero, idade e disponibilidade real
                 </p>
-                <Link
-                  href="/app/planos"
-                  className="mt-2 inline-block rounded-pill bg-gradient-to-r from-brand-strong to-brand px-3 py-1 text-[0.65rem] font-bold text-white shadow-glow"
-                >
-                  Liberar agora →
-                </Link>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmOpen(true)}
+                    className="rounded-pill bg-gradient-to-r from-warn to-brand px-3 py-1.5 text-[0.7rem] font-bold text-white shadow-glow"
+                  >
+                    Liberar 24h por {FILTERS_COST} 🪙
+                  </button>
+                  <Link
+                    href="/app/planos"
+                    className="text-[0.65rem] font-bold text-text-soft hover:text-text"
+                  >
+                    ou assine VIP →
+                  </Link>
+                </div>
               </div>
             )}
 
-            <div className={cn("flex flex-col gap-4", !isPremium && "pointer-events-none opacity-40")}>
+            <div className={cn("flex flex-col gap-4", !unlocked && "pointer-events-none opacity-40")}>
               <div>
                 <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted">
                   Gênero
@@ -126,7 +184,7 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
                   ).map((opt) => (
                     <button
                       key={opt.v}
-                      onClick={() => isPremium && onChange({ ...value, gender: opt.v })}
+                      onClick={() => unlocked && onChange({ ...value, gender: opt.v })}
                       className={cn(
                         "rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors",
                         value.gender === opt.v
@@ -155,7 +213,7 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
                     min="18"
                     max="80"
                     value={value.minAge}
-                    onChange={(e) => isPremium && onChange({ ...value, minAge: Number(e.target.value) })}
+                    onChange={(e) => unlocked && onChange({ ...value, minAge: Number(e.target.value) })}
                     className="flex-1 accent-brand"
                   />
                   <input
@@ -163,7 +221,7 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
                     min="18"
                     max="80"
                     value={value.maxAge}
-                    onChange={(e) => isPremium && onChange({ ...value, maxAge: Number(e.target.value) })}
+                    onChange={(e) => unlocked && onChange({ ...value, maxAge: Number(e.target.value) })}
                     className="flex-1 accent-brand"
                   />
                 </div>
@@ -173,7 +231,7 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
                 <input
                   type="checkbox"
                   checked={value.onlyOpen}
-                  onChange={(e) => isPremium && onChange({ ...value, onlyOpen: e.target.checked })}
+                  onChange={(e) => unlocked && onChange({ ...value, onlyOpen: e.target.checked })}
                   className="accent-brand"
                 />
                 <Sparkles className="size-3.5 text-brand" />
@@ -190,6 +248,15 @@ export function AdvancedFilters({ isPremium, value, onChange }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CreditConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        cost={FILTERS_COST}
+        balance={currentBalance}
+        featureLabel={`Filtros avançados (${FILTERS_UNLOCK_HOURS}h)`}
+        onConfirm={handleCreditUnlock}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { HomeClient } from "@/components/app/HomeClient";
+import { getMyBalance } from "@/lib/actions/credits";
 import { listNearbyEstablishments } from "@/lib/db/establishments";
 import { getCurrentProfile } from "@/lib/db/profiles";
 import type { Establishment } from "@/data/establishments";
@@ -6,9 +7,10 @@ import type { Establishment } from "@/data/establishments";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [nearby, profile] = await Promise.all([
+  const [nearby, profile, credits] = await Promise.all([
     listNearbyEstablishments({ sort: "nearest" }),
     getCurrentProfile(),
+    getMyBalance(),
   ]);
 
   const isPremium = !!profile?.current_plan_id || profile?.role === "admin";
@@ -38,5 +40,5 @@ export default async function HomePage() {
 
   const totalOnline = establishments.reduce((a, e) => a + e.presentNow, 0);
 
-  return <HomeClient establishments={establishments} totalOnline={totalOnline} isPremium={isPremium} />;
+  return <HomeClient establishments={establishments} totalOnline={totalOnline} isPremium={isPremium} credits={credits} />;
 }

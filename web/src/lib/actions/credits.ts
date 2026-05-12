@@ -36,6 +36,34 @@ export async function getMyBalance(): Promise<number> {
   return data?.balance ?? 0;
 }
 
+/**
+ * Retorna o slug do plano ativo do usuário (ex: "free", "premium", "vip").
+ * Quando nenhum sub ativa existe, retorna "free".
+ */
+export async function getMyActivePlanKey(): Promise<string> {
+  if (isMockMode()) return "free";
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) return "free";
+  const { data } = await sb
+    .from("subscriptions")
+    .select("plans(name)")
+    .eq("profile_id", user.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const planName = (data as { plans?: { name?: string } | null } | null)?.plans?.name;
+  if (!planName) return "free";
+  return planName
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
+
 export interface CreditPack {
   id: string;
   name: string;
