@@ -1,12 +1,9 @@
 import { ArrowDownRight, ArrowUpRight, Coins, MessageCircle, Sparkles, User, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { CreditosClient } from "@/components/app/CreditosClient";
 import { getMyBalance, listCreditPacks, listFeatures, listMyCreditTransactions } from "@/lib/actions/credits";
+import { getCurrentProfile } from "@/lib/db/profiles";
 
 export const dynamic = "force-dynamic";
-
-function formatPrice(cents: number) {
-  return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
-}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -25,11 +22,12 @@ const SCOPE_META: Record<string, { icon: typeof MessageCircle; color: string; la
 };
 
 export default async function CreditosPage() {
-  const [balance, packs, features, txs] = await Promise.all([
+  const [balance, packs, features, txs, profile] = await Promise.all([
     getMyBalance(),
     listCreditPacks(),
     listFeatures(),
     listMyCreditTransactions(),
+    getCurrentProfile(),
   ]);
 
   const featuresByScope = features.reduce<Record<string, typeof features>>((acc, f) => {
@@ -37,76 +35,38 @@ export default async function CreditosPage() {
     return acc;
   }, {});
 
+  const userData = profile
+    ? {
+        name: profile.name,
+        email: profile.email,
+        whatsapp: profile.whatsapp,
+        cpf: (profile as { cpf?: string | null }).cpf ?? null,
+      }
+    : undefined;
+
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 pb-8">
-      <header className="mb-6 flex flex-col items-center gap-2 text-center">
-        <div className="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-warn via-brand to-brand-soft shadow-glow">
-          <Coins className="size-8 text-white" />
-        </div>
-        <h1 className="text-3xl font-black tracking-tight text-text md:text-4xl">Seus créditos</h1>
-        <p className="text-sm text-text-soft">Use em features avulsas sem precisar de plano mensal</p>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-5xl font-black text-text">{balance}</span>
-          <span className="text-lg text-muted">créditos</span>
+    <div className="mx-auto w-full max-w-6xl px-5 pb-8">
+      <header className="mb-8 flex flex-col items-center gap-3 text-center">
+        <span className="rounded-pill border border-warn/30 bg-warn/10 px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-widest text-warn">
+          <Coins className="mr-1 inline size-3" />
+          Sua carteira
+        </span>
+        <h1 className="text-3xl font-black tracking-tight text-text text-balance md:text-5xl">
+          Créditos <span className="text-brand">I&apos;m Here</span>
+        </h1>
+        <p className="max-w-xl text-sm text-text-soft md:text-base">
+          Use em features avulsas sem precisar de plano mensal. Pagamento PIX ou cartão via Efí.
+        </p>
+
+        <div className="mt-3 flex items-baseline gap-2 rounded-3xl border border-warn/30 bg-gradient-to-br from-warn/10 to-brand/10 px-8 py-5 shadow-glow">
+          <span className="text-5xl font-black text-text md:text-6xl">{balance}</span>
+          <span className="text-base font-bold text-warn">🪙</span>
         </div>
       </header>
 
-      <section className="mb-8">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-muted">
-          Comprar créditos
-        </h2>
-        {packs.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
-            <Coins className="mx-auto size-10 text-muted" />
-            <p className="mt-3 text-sm font-bold text-text">Nenhum pacote disponível agora</p>
-            <p className="mt-1 text-xs text-text-soft">
-              Estamos preparando pacotes novos. Volta em breve.
-            </p>
-          </div>
-        ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {packs.map((p, i) => (
-            <motion.button
-              key={p.id}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ y: -4 }}
-              className={`relative flex flex-col gap-3 rounded-3xl border bg-surface p-4 text-left transition-all ${
-                p.highlight ? "border-brand shadow-glow" : "border-border hover:border-brand/40"
-              }`}
-            >
-              {p.highlight && (
-                <span className="absolute right-3 top-3 rounded-pill bg-brand px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider text-white">
-                  Popular
-                </span>
-              )}
-              <div className="grid size-10 place-items-center rounded-xl bg-warn/15 text-warn">
-                <Coins className="size-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-black text-text">
-                  {p.credits + p.bonus}
-                </p>
-                <p className="text-[0.65rem] uppercase tracking-widest text-muted">
-                  créditos
-                  {p.bonus > 0 && <span className="ml-1 text-success">+{p.bonus} bônus</span>}
-                </p>
-              </div>
-              <div className="mt-auto">
-                <p className="text-lg font-black text-brand">{formatPrice(p.price_cents)}</p>
-                <p className="text-[0.6rem] text-muted">
-                  ~{(p.price_cents / 100 / (p.credits + p.bonus)).toFixed(2)} por crédito
-                </p>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-        )}
-      </section>
+      <CreditosClient packs={packs} userData={userData} />
 
-      <section className="mb-8">
+      <section className="mt-10 mb-8">
         <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-muted">
           Tabela de preços (custo por uso)
         </h2>
