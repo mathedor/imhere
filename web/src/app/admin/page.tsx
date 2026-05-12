@@ -8,27 +8,57 @@ import {
   getPlanDistribution,
   getRevenueByDay,
   listRecentSubscriptions,
+  type DailyPoint,
+  type DashboardKPIs,
+  type PlanRow,
+  type RecentSubscription,
 } from "@/lib/db/admin-dashboard";
 import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
+
+const FALLBACK_KPIS: DashboardKPIs = {
+  totalUsers: 0,
+  totalEstabs: 0,
+  activeCheckins: 0,
+  mrrCents: 0,
+  totalInteractions: 0,
+  totalCreditsInEconomy: 0,
+  totalSubscriptions: 0,
+  totalMomentsActive: 0,
+};
+
+async function safe<T>(fn: () => Promise<T>, fallback: T, label: string): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error(`[admin/page] ${label} falhou:`, err);
+    return fallback;
+  }
+}
 
 export default async function AdminDashboardPage({
   searchParams,
 }: {
   searchParams: Promise<{ range?: string }>;
 }) {
-  const { range } = await searchParams;
-  const rangeKey = parseRange(range);
-  const days = rangeToDays(rangeKey);
+  let rangeKey: ReturnType<typeof parseRange> = "30d";
+  let days = 30;
+  try {
+    const sp = await searchParams;
+    rangeKey = parseRange(sp?.range);
+    days = rangeToDays(rangeKey);
+  } catch {
+    // mantém defaults
+  }
 
   const [kpis, planDist, recentSubs, revenueByDay, usersByDay, interactionsByDay] = await Promise.all([
-    getAdminDashboardKPIs(),
-    getPlanDistribution(),
-    listRecentSubscriptions(),
-    getRevenueByDay(days),
-    getNewUsersByDay(days),
-    getInteractionsByDay(days),
+    safe<DashboardKPIs>(() => getAdminDashboardKPIs(), FALLBACK_KPIS, "getAdminDashboardKPIs"),
+    safe<PlanRow[]>(() => getPlanDistribution(), [], "getPlanDistribution"),
+    safe<RecentSubscription[]>(() => listRecentSubscriptions(), [], "listRecentSubscriptions"),
+    safe<DailyPoint[]>(() => getRevenueByDay(days), [], "getRevenueByDay"),
+    safe<DailyPoint[]>(() => getNewUsersByDay(days), [], "getNewUsersByDay"),
+    safe<DailyPoint[]>(() => getInteractionsByDay(days), [], "getInteractionsByDay"),
   ]);
 
   return (

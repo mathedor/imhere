@@ -157,39 +157,27 @@ function mockSeries(days: number, base: number, variance = 0.3): DailyPoint[] {
   return bucketsToSeries(buckets);
 }
 
-async function dailyFromTable(
-  table: string,
-  dateColumn: string,
-  days: number
-): Promise<DailyPoint[]> {
+export async function getRevenueByDay(days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockSeries(days, 1280);
   try {
     const sb = await supabaseServer();
     const start = daysBack(days);
     const { data, error } = await sb
-      .from(table)
-      .select(`${dateColumn}, amount_cents`)
-      .gte(dateColumn, start.toISOString())
-      .limit(10000);
+      .from("subscriptions")
+      .select("amount_cents, created_at")
+      .gte("created_at", start.toISOString());
     if (error) throw error;
     const buckets = buildDailyBuckets(days);
-    for (const row of (data ?? []) as Array<Record<string, string | number | null>>) {
-      const raw = row[dateColumn];
-      if (typeof raw !== "string") continue;
-      const key = raw.slice(0, 10);
-      if (!buckets.has(key)) continue;
-      const inc = typeof row.amount_cents === "number" ? row.amount_cents / 100 : 1;
-      buckets.set(key, (buckets.get(key) ?? 0) + inc);
+    for (const row of (data ?? []) as Array<{ amount_cents: number | null; created_at: string | null }>) {
+      const key = row.created_at?.slice(0, 10);
+      if (!key || !buckets.has(key)) continue;
+      buckets.set(key, (buckets.get(key) ?? 0) + ((row.amount_cents ?? 0) / 100));
     }
     return bucketsToSeries(buckets);
   } catch (err) {
-    console.error(`[admin-dashboard] daily ${table}.${dateColumn} falhou:`, err);
+    console.error("[admin-dashboard] getRevenueByDay falhou:", err);
     return bucketsToSeries(buildDailyBuckets(days));
   }
-}
-
-export async function getRevenueByDay(days = 30): Promise<DailyPoint[]> {
-  if (isMockMode()) return mockSeries(days, 1280);
-  return dailyFromTable("subscriptions", "created_at", days);
 }
 
 export async function getNewUsersByDay(days = 30): Promise<DailyPoint[]> {
