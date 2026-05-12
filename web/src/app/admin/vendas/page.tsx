@@ -70,14 +70,14 @@ export default async function VendasPage({
       </header>
 
       {/* Filtro principal: TIPO de receita */}
-      <section className="mb-4 rounded-2xl border border-border bg-surface p-4">
+      <section className="mb-4 rounded-2xl border border-border bg-surface p-3 md:p-4">
         <div className="mb-3 flex items-center gap-2">
-          <Layers className="size-4 text-brand" />
-          <span className="text-xs font-bold uppercase tracking-widest text-muted">
-            Tipo de receita · filtro principal
+          <Layers className="size-3.5 text-brand" />
+          <span className="text-[0.65rem] font-bold uppercase tracking-widest text-muted md:text-xs">
+            Tipo · filtro principal
           </span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
           {(["both", "subscriptions", "credits"] as SalesType[]).map((t) => {
             const meta = TYPE_LABELS[t];
             const TIcon = meta.icon;
@@ -94,22 +94,22 @@ export default async function VendasPage({
                     ? `?type=${t}&range=${sp.range}`
                     : `?type=${t}`
                 }
-                className={`flex items-center gap-2.5 rounded-xl border p-3 transition-all ${
+                className={`flex min-w-0 flex-col items-center gap-1.5 rounded-xl border p-2.5 text-center transition-all sm:flex-row sm:gap-2 sm:text-left md:p-3 ${
                   active
                     ? "border-brand bg-brand/10 shadow-glow"
                     : "border-border bg-surface-2 hover:border-brand/40"
                 }`}
               >
                 <div
-                  className={`grid size-9 shrink-0 place-items-center rounded-lg ${
+                  className={`grid size-8 shrink-0 place-items-center rounded-lg sm:size-9 ${
                     active ? "bg-brand text-white" : "bg-surface text-brand"
                   }`}
                 >
-                  <TIcon className="size-4" />
+                  <TIcon className="size-3.5 sm:size-4" />
                 </div>
                 <div className="min-w-0 leading-tight">
-                  <p className="text-sm font-bold text-text">{meta.label}</p>
-                  <p className="hidden text-[0.65rem] text-text-soft sm:block">{meta.desc}</p>
+                  <p className="text-xs font-bold text-text sm:text-sm">{meta.label}</p>
+                  <p className="hidden text-[0.65rem] text-text-soft md:block">{meta.desc}</p>
                 </div>
               </Link>
             );
