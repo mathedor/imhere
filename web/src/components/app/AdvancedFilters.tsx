@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Filter, Lock, Sparkles, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditConfirmDialog } from "@/components/CreditConfirmDialog";
 import { spendCreditsAction } from "@/lib/actions/credits";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,6 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
   const [creditUnlockedUntil, setCreditUnlockedUntil] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(balance);
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -48,6 +47,17 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
       if (Number.isFinite(ts) && ts > Date.now()) setCreditUnlockedUntil(ts);
     }
   }, []);
+
+  // Bloqueia scroll quando o modal está aberto
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [open]);
 
   const creditUnlocked = creditUnlockedUntil !== null && creditUnlockedUntil > Date.now();
   const unlocked = isPremium || creditUnlocked;
@@ -84,12 +94,12 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
     (value.onlyOpen ? 1 : 0);
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <motion.button
         whileTap={{ scale: 0.95 }}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         className={cn(
-          "flex h-11 items-center gap-2 rounded-pill border px-4 text-sm font-medium transition-colors",
+          "flex h-11 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-sm font-medium transition-colors",
           activeCount > 0
             ? "border-brand bg-brand/10 text-brand"
             : "border-border bg-surface text-text hover:border-brand/40"
@@ -117,16 +127,29 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.16 }}
-            className="absolute right-0 top-[calc(100%+8px)] z-30 w-80 overflow-hidden rounded-2xl glass-strong p-4 shadow-soft"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          >
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.92, opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 360, damping: 24 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-3xl border border-border bg-surface p-5 shadow-soft"
           >
             <header className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Filter className="size-4 text-brand" />
-                <h3 className="text-sm font-bold text-text">Filtros avançados</h3>
+                <div className="grid size-9 place-items-center rounded-xl bg-brand/15 text-brand">
+                  <Filter className="size-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-text">Filtros avançados</h3>
+                  <p className="text-[0.65rem] text-text-soft">Refine quem você quer encontrar</p>
+                </div>
                 {isPremium && (
                   <span className="rounded-pill bg-warn/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-warn">
                     VIP
@@ -134,12 +157,12 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
                 )}
                 {!isPremium && creditUnlocked && (
                   <span className="rounded-pill bg-success/15 px-1.5 py-0.5 text-[0.6rem] font-bold text-success">
-                    Liberado {hoursLeft()}h
+                    {hoursLeft()}h
                   </span>
                 )}
               </div>
-              <button onClick={() => setOpen(false)} className="grid size-7 place-items-center rounded-full text-muted hover:text-text">
-                <X className="size-3.5" />
+              <button onClick={() => setOpen(false)} className="grid size-9 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+                <X className="size-4" />
               </button>
             </header>
 
@@ -245,6 +268,22 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
                 Limpar filtros
               </button>
             </div>
+
+            <div className="mt-5 flex justify-end gap-2 border-t border-border pt-4">
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-pill border border-border bg-surface-2 px-4 py-2 text-xs font-bold text-text-soft hover:text-text"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-xs font-bold text-white shadow-glow"
+              >
+                Aplicar
+              </button>
+            </div>
+          </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -257,6 +296,6 @@ export function AdvancedFilters({ isPremium, value, onChange, balance = 0 }: Pro
         featureLabel={`Filtros avançados (${FILTERS_UNLOCK_HOURS}h)`}
         onConfirm={handleCreditUnlock}
       />
-    </div>
+    </>
   );
 }

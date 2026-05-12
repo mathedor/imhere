@@ -170,12 +170,10 @@ export function HomeClient({ establishments, totalOnline, isPremium = false, cre
         </div>
       </section>
 
-      <section className="flex flex-wrap items-center justify-between gap-2">
+      <section className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
         <NearbyButton active={nearbyOnly} onClick={toggleNearby} />
-        <div className="flex items-center gap-2">
-          <AdvancedFilters isPremium={isPremium} balance={credits} value={filters} onChange={setFilters} />
-          <SortMenu value={sort} onChange={setSort} />
-        </div>
+        <AdvancedFilters isPremium={isPremium} balance={credits} value={filters} onChange={setFilters} />
+        <SortMenu value={sort} onChange={setSort} />
       </section>
 
       <section className="flex flex-col gap-4">

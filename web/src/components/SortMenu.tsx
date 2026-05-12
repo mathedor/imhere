@@ -36,11 +36,11 @@ export function SortMenu({ value, onChange }: SortMenuProps) {
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-11 items-center gap-2 rounded-pill border border-border bg-surface px-4 text-sm font-medium text-text transition-colors hover:border-brand/40"
+        className="flex h-11 shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-3 text-sm font-medium text-text transition-colors hover:border-brand/40"
       >
         <SlidersHorizontal className="size-4 text-brand" />
-        <span className="hidden sm:inline">Ordenar por:</span>
-        <span className="font-semibold">{current.label}</span>
+        <span className="hidden sm:inline">Ordenar:</span>
+        <span className="hidden md:inline font-semibold">{current.label}</span>
         <ChevronDown
           className={cn("size-4 text-muted transition-transform duration-200", open && "rotate-180")}
         />
@@ -108,14 +108,15 @@ export function NearbyButton({ active, onClick }: { active: boolean; onClick: ()
       whileHover={{ y: -1 }}
       onClick={onClick}
       className={cn(
-        "group relative flex h-11 items-center gap-2 overflow-hidden rounded-pill px-4 text-sm font-semibold transition-all",
+        "group relative flex h-11 shrink-0 items-center gap-1.5 overflow-hidden rounded-pill px-3 text-sm font-semibold transition-all",
         active
           ? "bg-brand text-white shadow-glow"
           : "border border-border bg-surface text-text hover:border-brand/40"
       )}
     >
       <Users className="size-4" />
-      <span>Perto de mim</span>
+      <span className="hidden sm:inline">Perto de mim</span>
+      <span className="sm:hidden">Perto</span>
       {active && (
         <motion.span
           layoutId="nearbyGlow"
