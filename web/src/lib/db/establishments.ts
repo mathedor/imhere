@@ -83,16 +83,21 @@ export async function listNearbyEstablishments(params: NearbyParams = {}): Promi
   return data ?? [];
 }
 
+// UUID v4 regex pra distinguir id vs slug
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getEstablishment(idOrSlug: string): Promise<Establishment | null> {
   if (isMockMode()) {
     const e = mockEstabs.find((x) => x.id === idOrSlug);
     return e ? mockToEstablishment(e) : null;
   }
   const sb = await supabaseServer();
+  const isUuid = UUID_RE.test(idOrSlug);
+  const column = isUuid ? "id" : "slug";
   const { data } = await sb
     .from("establishments")
     .select("*")
-    .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
+    .eq(column, idOrSlug)
     .maybeSingle();
   return data;
 }

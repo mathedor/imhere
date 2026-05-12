@@ -60,10 +60,11 @@ export async function listMenuBySlug(slug: string): Promise<{
   }
 
   const sb = await supabaseServer();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: estab } = await sb
     .from("establishments")
     .select("id, name, cover_url, instagram, city, state")
-    .or(`id.eq.${slug},slug.eq.${slug}`)
+    .eq(isUuid ? "id" : "slug", slug)
     .maybeSingle();
   if (!estab) return { establishment: null, items: [] };
 
