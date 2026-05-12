@@ -12,7 +12,7 @@ const nextConfig = {
   outputFileTracingRoot: __dirname,
   // Tipos do Database ainda em refinamento — não trava o build
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
+  // Next 16 removeu `eslint` daqui; lint roda separado via `next lint`
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
