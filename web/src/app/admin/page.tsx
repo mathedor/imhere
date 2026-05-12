@@ -1,52 +1,45 @@
 import Link from "next/link";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
+export default function AdminDashboardPage() {
   return (
-    <PanelLayout
-      scope="admin"
-      title="Painel Admin"
-      subtitle="Dashboard simplificado · sub-rotas no menu lateral"
-      nav={NAV_ADMIN}
-      quickNav={QUICK_ADMIN}
-      user={{ name: "Mateus H.", role: "Admin geral" }}
-    >
-      <section className="mb-6 rounded-3xl border border-success/30 bg-success/10 p-6 text-center">
-        <h2 className="text-xl font-black text-text">✓ Painel carregando normalmente</h2>
-        <p className="mt-2 text-sm text-text-soft">
-          O dashboard com KPIs está temporariamente desabilitado enquanto a gente
-          investiga um erro de produção. Use o menu lateral pra acessar as outras seções.
-        </p>
-      </section>
+    <div className="min-h-dvh bg-bg p-8">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-6">
+          <h1 className="text-3xl font-black text-text">Painel Admin</h1>
+          <p className="mt-1 text-sm text-text-soft">
+            Modo simplificado · sem PanelLayout enquanto investigamos o erro
+          </p>
+        </header>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {[
-          { href: "/admin/usuarios", label: "Usuários", desc: "Gerenciar contas" },
-          { href: "/admin/estabelecimentos", label: "Estabelecimentos", desc: "Catálogo de lugares" },
-          { href: "/admin/vendas", label: "Vendas & Assinaturas", desc: "Receita e churn" },
-          { href: "/admin/comerciais", label: "Comerciais", desc: "Equipe de vendas" },
-          { href: "/admin/planos", label: "Planos", desc: "Editar planos" },
-          { href: "/admin/creditos", label: "Créditos", desc: "Preços e pacotes" },
-          { href: "/admin/moderacao", label: "Moderação", desc: "Filas de revisão" },
-          { href: "/admin/relatorios", label: "Relatórios", desc: "Análises completas" },
-          { href: "/admin/config", label: "Configurações", desc: "Sistema" },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="group rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-glow"
-          >
-            <p className="text-base font-bold text-text">{item.label}</p>
-            <p className="mt-1 text-xs text-text-soft">{item.desc}</p>
-            <span className="mt-2 inline-block text-xs font-bold text-brand opacity-0 transition-opacity group-hover:opacity-100">
-              Abrir →
-            </span>
-          </Link>
-        ))}
-      </section>
-    </PanelLayout>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {[
+            { href: "/admin/usuarios", label: "Usuários" },
+            { href: "/admin/estabelecimentos", label: "Estabelecimentos" },
+            { href: "/admin/vendas", label: "Vendas & Assinaturas" },
+            { href: "/admin/comerciais", label: "Comerciais" },
+            { href: "/admin/planos", label: "Planos" },
+            { href: "/admin/creditos", label: "Créditos" },
+            { href: "/admin/moderacao", label: "Moderação" },
+            { href: "/admin/relatorios", label: "Relatórios" },
+            { href: "/admin/config", label: "Configurações" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-brand/40"
+            >
+              <p className="font-bold text-text">{item.label}</p>
+              <p className="mt-1 text-xs text-brand">Abrir →</p>
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-xs text-text-soft">
+          Login funcionando · clique numa seção pra continuar
+        </p>
+      </div>
+    </div>
   );
 }
