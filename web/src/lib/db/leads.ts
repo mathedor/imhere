@@ -1,6 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
-import type { LeadStage } from "./leads-meta";
+import { STAGE_ORDER, type LeadStage } from "./leads-meta";
 
 export { STAGE_LABEL, STAGE_COLOR, STAGE_ORDER, type LeadStage } from "./leads-meta";
 
@@ -44,11 +44,9 @@ export interface LeadStageCount {
   forecastCents: number;
 }
 
-import { STAGE_ORDER as _STAGE_ORDER } from "./leads-meta";
-
 export async function getMyLeadCounts(): Promise<LeadStageCount[]> {
   if (isMockMode()) {
-    return _STAGE_ORDER.map((s) => ({ stage: s, count: 0, forecastCents: 0 }));
+    return STAGE_ORDER.map((s) => ({ stage: s, count: 0, forecastCents: 0 }));
   }
   const sb = await supabaseServer();
   const {
@@ -69,7 +67,7 @@ export async function getMyLeadCounts(): Promise<LeadStageCount[]> {
     map.set(row.stage, existing);
   }
 
-  return _STAGE_ORDER.map((s) => ({
+  return STAGE_ORDER.map((s) => ({
     stage: s,
     count: map.get(s)?.count ?? 0,
     forecastCents: map.get(s)?.forecastCents ?? 0,
