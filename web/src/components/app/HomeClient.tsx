@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, MapPin, Search, SlidersHorizontal, Users, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { AdvancedFilters, type AdvancedFilterValues } from "@/components/app/AdvancedFilters";
 import { EstablishmentCard } from "@/components/EstablishmentCard";
 import { NearbyButton, SortMenu, type SortKey } from "@/components/SortMenu";
 import type { Establishment } from "@/data/establishments";
@@ -11,13 +12,20 @@ import type { Establishment } from "@/data/establishments";
 interface Props {
   establishments: Establishment[];
   totalOnline: number;
+  isPremium?: boolean;
 }
 
-export function HomeClient({ establishments, totalOnline }: Props) {
+export function HomeClient({ establishments, totalOnline, isPremium = false }: Props) {
   const router = useRouter();
   const [sort, setSort] = useState<SortKey>("nearest");
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<AdvancedFilterValues>({
+    gender: "all",
+    minAge: 18,
+    maxAge: 65,
+    onlyOpen: false,
+  });
   const [locationLabel, setLocationLabel] = useState("Compartilhe sua localização");
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "ok" | "denied">("idle");
 
@@ -118,7 +126,10 @@ export function HomeClient({ establishments, totalOnline }: Props) {
 
       <section className="flex flex-wrap items-center justify-between gap-2">
         <NearbyButton active={nearbyOnly} onClick={() => setNearbyOnly((v) => !v)} />
-        <SortMenu value={sort} onChange={setSort} />
+        <div className="flex items-center gap-2">
+          <AdvancedFilters isPremium={isPremium} value={filters} onChange={setFilters} />
+          <SortMenu value={sort} onChange={setSort} />
+        </div>
       </section>
 
       <section className="flex flex-col gap-4">

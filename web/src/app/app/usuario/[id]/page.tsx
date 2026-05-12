@@ -16,16 +16,23 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { ContactButton } from "@/components/user/ContactButton";
 import { UserGallery } from "@/components/user/UserGallery";
 import { establishments } from "@/data/establishments";
 import { presentByEstablishment, users } from "@/data/users";
+import { recordProfileViewAction } from "@/lib/actions/profile-views";
 
 export default function UserPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const user = users.find((u) => u.id === id);
+
+  // Registra visualização (premium feature - 1 por dia entre pares)
+  useEffect(() => {
+    if (id) recordProfileViewAction(id).catch(() => {});
+  }, [id]);
 
   if (!user) notFound();
 

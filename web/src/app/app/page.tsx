@@ -1,12 +1,17 @@
 import { HomeClient } from "@/components/app/HomeClient";
 import { listNearbyEstablishments } from "@/lib/db/establishments";
+import { getCurrentProfile } from "@/lib/db/profiles";
 import type { Establishment } from "@/data/establishments";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // Server-side: busca todos os estabelecimentos com presença
-  const nearby = await listNearbyEstablishments({ sort: "nearest" });
+  const [nearby, profile] = await Promise.all([
+    listNearbyEstablishments({ sort: "nearest" }),
+    getCurrentProfile(),
+  ]);
+
+  const isPremium = !!profile?.current_plan_id || profile?.role === "admin";
 
   const establishments: Establishment[] = nearby.map((e) => ({
     id: e.id,
@@ -33,5 +38,5 @@ export default async function HomePage() {
 
   const totalOnline = establishments.reduce((a, e) => a + e.presentNow, 0);
 
-  return <HomeClient establishments={establishments} totalOnline={totalOnline} />;
+  return <HomeClient establishments={establishments} totalOnline={totalOnline} isPremium={isPremium} />;
 }
