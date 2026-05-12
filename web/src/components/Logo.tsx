@@ -4,20 +4,30 @@ interface LogoProps {
   className?: string;
   showWordmark?: boolean;
   size?: number;
+  /** Wordmark menor, sem subtitle — pra usar em headers */
+  compact?: boolean;
 }
 
-export function Logo({ className, showWordmark = true, size = 36 }: LogoProps) {
+export function Logo({ className, showWordmark = true, size = 36, compact = false }: LogoProps) {
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       <LogoMark size={size} />
       {showWordmark && (
         <div className="flex flex-col leading-none">
-          <span className="logo-wordmark text-[1.35rem] font-black tracking-tight">
-            I&apos;m <span className="text-brand">Here</span>
+          <span
+            className={cn(
+              "logo-wordmark font-black tracking-tight",
+              compact ? "text-xl" : "text-[1.6rem]"
+            )}
+            style={{ fontWeight: 900, letterSpacing: "-0.02em" }}
+          >
+            I&apos;m <span className="logo-wordmark-brand">Here</span>
           </span>
-          <span className="logo-wordmark-soft mt-0.5 text-[0.6rem] font-medium uppercase tracking-[0.22em]">
-            check-in social
-          </span>
+          {!compact && (
+            <span className="logo-wordmark-soft mt-0.5 text-[0.6rem] font-bold uppercase tracking-[0.22em]">
+              check-in social
+            </span>
+          )}
         </div>
       )}
     </div>

@@ -69,11 +69,14 @@ html[data-theme="light"] .logo-pin { fill: url(#pinGrad); }
 html[data-theme="light"] .logo-globe { fill: #ffffff; }
 html[data-theme="light"] .logo-continents { fill: #ef2c39; opacity: 0.92; }
 
-/* Wordmark — branco no dark, preto no light. !important pra vencer qualquer cascade do Tailwind. */
+/* Wordmark — branco no dark, preto no light. "Here" sempre vermelho.
+   !important pra vencer qualquer cascade do Tailwind. */
 .logo-wordmark { color: #ffffff !important; }
 .logo-wordmark-soft { color: #b8b8c0 !important; }
+.logo-wordmark-brand { color: #ef2c39 !important; }
 html[data-theme="light"] .logo-wordmark { color: #0d0d10 !important; }
 html[data-theme="light"] .logo-wordmark-soft { color: #45454e !important; }
+html[data-theme="light"] .logo-wordmark-brand { color: #dc1f2b !important; }
 
 * {
   -webkit-tap-highlight-color: transparent;

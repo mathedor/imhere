@@ -17,7 +17,7 @@ export function AppHeader({ unreadNotif = 0, credits = 0 }: Props = {}) {
   return (
     <header className="md:hidden sticky top-0 z-20 flex items-center justify-between gap-2 px-5 pb-4 pt-[max(env(safe-area-inset-top),14px)] bg-gradient-to-b from-bg via-bg/95 to-transparent backdrop-blur-sm">
       <Link href="/app">
-        <Logo size={32} showWordmark={false} />
+        <Logo size={28} compact />
       </Link>
       <div className="flex items-center gap-1.5">
         <CreditBadge balance={credits} compact />
