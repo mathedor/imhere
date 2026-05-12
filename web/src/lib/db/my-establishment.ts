@@ -2,6 +2,97 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
 import type { Establishment, Profile } from "./types";
 
+export interface DailyPoint {
+  label: string;
+  value: number;
+}
+
+export interface RecentEstabMessage {
+  who: string;
+  msg: string;
+  time: string;
+}
+
+function daysBack(n: number): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (n - 1));
+  return d;
+}
+
+function buildDailyBuckets(days: number): Map<string, number> {
+  const buckets = new Map<string, number>();
+  const start = daysBack(days);
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    buckets.set(d.toISOString().slice(0, 10), 0);
+  }
+  return buckets;
+}
+
+function bucketsToSeries(buckets: Map<string, number>): DailyPoint[] {
+  return Array.from(buckets.entries()).map(([iso, value]) => {
+    const [, m, d] = iso.split("-");
+    return { label: `${d}/${m}`, value };
+  });
+}
+
+function mockCheckins(days: number): DailyPoint[] {
+  const buckets = buildDailyBuckets(days);
+  let i = 0;
+  for (const key of buckets.keys()) {
+    const dow = new Date(key).getDay();
+    const boost = [0.6, 0.5, 0.8, 1.2, 1.6, 2.1, 1.7][dow];
+    buckets.set(key, Math.round(22 * boost + ((i * 7) % 13)));
+    i++;
+  }
+  return bucketsToSeries(buckets);
+}
+
+export async function getCheckinsByDay(estabId: string, days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockCheckins(days);
+  const sb = await supabaseServer();
+  const start = daysBack(days);
+  const { data } = await sb
+    .from("checkins")
+    .select("checked_in_at")
+    .eq("establishment_id", estabId)
+    .gte("checked_in_at", start.toISOString());
+  const buckets = buildDailyBuckets(days);
+  for (const row of (data ?? []) as Array<{ checked_in_at: string }>) {
+    const key = row.checked_in_at.slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  return bucketsToSeries(buckets);
+}
+
+/**
+ * Últimas mensagens em conversas entre pessoas que estavam neste estabelecimento.
+ * Filtra conversas com `establishment_id = estabId`.
+ */
+export async function getRecentEstabMessages(estabId: string, limit = 6): Promise<RecentEstabMessage[]> {
+  if (isMockMode()) return [];
+  const sb = await supabaseServer();
+  const { data } = await sb
+    .from("messages")
+    .select("body, created_at, sender_id, conversations!inner(establishment_id), profiles!sender_id(name)")
+    .eq("conversations.establishment_id", estabId)
+    .eq("type", "text")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return ((data ?? []) as unknown as Array<{
+    body: string | null;
+    created_at: string;
+    profiles: { name: string } | null;
+  }>).map((m) => ({
+    who: m.profiles?.name ?? "—",
+    msg: m.body ?? "",
+    time: new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  }));
+}
+
 export interface MyEstabContext {
   establishment: Establishment | null;
   presentProfiles: Profile[];

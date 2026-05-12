@@ -92,6 +92,99 @@ export async function getPlanDistribution(): Promise<PlanRow[]> {
   ];
 }
 
+export interface DailyPoint {
+  label: string;
+  value: number;
+}
+
+function daysBack(n: number): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (n - 1));
+  return d;
+}
+
+function buildDailyBuckets(days: number): Map<string, number> {
+  const buckets = new Map<string, number>();
+  const start = daysBack(days);
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    buckets.set(key, 0);
+  }
+  return buckets;
+}
+
+function bucketsToSeries(buckets: Map<string, number>): DailyPoint[] {
+  return Array.from(buckets.entries()).map(([iso, value]) => {
+    const [, m, day] = iso.split("-");
+    return { label: `${day}/${m}`, value };
+  });
+}
+
+function mockSeries(days: number, base: number, variance = 0.3): DailyPoint[] {
+  const buckets = buildDailyBuckets(days);
+  let i = 0;
+  for (const key of buckets.keys()) {
+    const d = new Date(key);
+    const dayBoost = [0.7, 0.6, 1, 1.4, 1.7, 2.2, 1.8][d.getDay()];
+    const noise = 1 + ((i * 13) % 100) / 100 * variance - variance / 2;
+    buckets.set(key, Math.max(1, Math.round(base * dayBoost * noise)));
+    i++;
+  }
+  return bucketsToSeries(buckets);
+}
+
+export async function getRevenueByDay(days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockSeries(days, 1280);
+  const sb = await supabaseServer();
+  const start = daysBack(days);
+  const { data } = await sb
+    .from("subscriptions")
+    .select("amount_cents, created_at")
+    .gte("created_at", start.toISOString());
+  const buckets = buildDailyBuckets(days);
+  for (const row of (data ?? []) as Array<{ amount_cents: number; created_at: string }>) {
+    const key = row.created_at.slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + (row.amount_cents ?? 0) / 100);
+  }
+  return bucketsToSeries(buckets);
+}
+
+export async function getNewUsersByDay(days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockSeries(days, 48);
+  const sb = await supabaseServer();
+  const start = daysBack(days);
+  const { data } = await sb
+    .from("profiles")
+    .select("created_at")
+    .gte("created_at", start.toISOString());
+  const buckets = buildDailyBuckets(days);
+  for (const row of (data ?? []) as Array<{ created_at: string }>) {
+    const key = row.created_at.slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  return bucketsToSeries(buckets);
+}
+
+export async function getInteractionsByDay(days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockSeries(days, 380);
+  const sb = await supabaseServer();
+  const start = daysBack(days);
+  const { data } = await sb
+    .from("messages")
+    .select("created_at")
+    .gte("created_at", start.toISOString())
+    .limit(10000);
+  const buckets = buildDailyBuckets(days);
+  for (const row of (data ?? []) as Array<{ created_at: string }>) {
+    const key = row.created_at.slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  return bucketsToSeries(buckets);
+}
+
 export interface RecentSubscription {
   id: string;
   user: string;

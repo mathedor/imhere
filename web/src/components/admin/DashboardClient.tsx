@@ -19,8 +19,7 @@ import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { interactionsByDay, revenueByDay, usersByDay } from "@/data/analytics";
-import type { DashboardKPIs, PlanRow, RecentSubscription } from "@/lib/db/admin-dashboard";
+import type { DailyPoint, DashboardKPIs, PlanRow, RecentSubscription } from "@/lib/db/admin-dashboard";
 
 const PLAN_COLORS: Record<string, string> = {
   Free: "#6b6b75",
@@ -96,9 +95,19 @@ interface Props {
   kpis: DashboardKPIs;
   planDistribution: PlanRow[];
   recentSubs: RecentSubscription[];
+  revenueByDay: DailyPoint[];
+  usersByDay: DailyPoint[];
+  interactionsByDay: DailyPoint[];
 }
 
-export function AdminDashboardClient({ kpis, planDistribution, recentSubs }: Props) {
+export function AdminDashboardClient({
+  kpis,
+  planDistribution,
+  recentSubs,
+  revenueByDay,
+  usersByDay,
+  interactionsByDay,
+}: Props) {
   const [range, setRange] = useState("30d");
   const planTotal = planDistribution.reduce((a, p) => a + p.count, 0);
 
@@ -148,7 +157,7 @@ export function AdminDashboardClient({ kpis, planDistribution, recentSubs }: Pro
           <div className="mb-3 flex items-end justify-between">
             <div>
               <h2 className="text-sm font-bold text-text">Receita diária</h2>
-              <p className="text-[0.7rem] text-muted">R$ por dia · 30 dias (estimativa)</p>
+              <p className="text-[0.7rem] text-muted">R$ por dia · últimos 30 dias</p>
             </div>
             <span className="flex items-center gap-1.5 rounded-pill bg-success/15 px-2.5 py-1 text-[0.65rem] font-bold text-success">
               <TrendingUp className="size-3" />
@@ -165,8 +174,8 @@ export function AdminDashboardClient({ kpis, planDistribution, recentSubs }: Pro
         <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="mb-3 flex items-end justify-between">
             <div>
-              <h2 className="text-sm font-bold text-text">Novos usuários (mock 30d)</h2>
-              <p className="text-[0.7rem] text-muted">Cadastros por dia</p>
+              <h2 className="text-sm font-bold text-text">Novos usuários</h2>
+              <p className="text-[0.7rem] text-muted">Cadastros por dia · últimos 30</p>
             </div>
           </div>
           <BarChart data={usersByDay} color="#3b82f6" />
@@ -175,8 +184,8 @@ export function AdminDashboardClient({ kpis, planDistribution, recentSubs }: Pro
         <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="mb-3 flex items-end justify-between">
             <div>
-              <h2 className="text-sm font-bold text-text">Interações no chat (mock)</h2>
-              <p className="text-[0.7rem] text-muted">Conexões iniciadas</p>
+              <h2 className="text-sm font-bold text-text">Mensagens enviadas</h2>
+              <p className="text-[0.7rem] text-muted">Total por dia · últimos 30</p>
             </div>
           </div>
           <BarChart data={interactionsByDay} color="#ef2c39" />

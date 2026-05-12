@@ -17,7 +17,7 @@ import { useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { checkinsByDay } from "@/data/analytics";
+import type { DailyPoint, RecentEstabMessage } from "@/lib/db/my-establishment";
 
 interface Props {
   presentNow: number;
@@ -26,6 +26,8 @@ interface Props {
   momentsActive: number;
   rating: number;
   instagram?: string;
+  checkinsByDay: DailyPoint[];
+  recentMessages: RecentEstabMessage[];
 }
 
 export function EstablishmentDashboardClient({
@@ -35,6 +37,8 @@ export function EstablishmentDashboardClient({
   momentsActive,
   rating,
   instagram,
+  checkinsByDay,
+  recentMessages,
 }: Props) {
   const [range, setRange] = useState("30d");
 
@@ -163,31 +167,37 @@ export function EstablishmentDashboardClient({
 
       <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-text">Mensagens recentes</h2>
+          <h2 className="text-sm font-bold text-text">Mensagens recentes no local</h2>
           <Link href="/estabelecimento/cortesias" className="text-xs font-bold text-brand hover:underline">
             Ver todas →
           </Link>
         </div>
-        <ul className="flex flex-col gap-2">
-          {[
-            { who: "Mariana C.", msg: "Pode ser uma mesa pra 3?", time: "22:14" },
-            { who: "Lucas A.", msg: "Aceito a cortesia, vou pegar!", time: "22:08" },
-            { who: "Beatriz L.", msg: "Tem fila no momento?", time: "21:58" },
-          ].map((m) => (
-            <li key={m.who} className="flex items-start gap-3 rounded-xl bg-surface-2 px-3 py-2.5">
-              <div className="grid size-8 shrink-0 place-items-center rounded-full bg-brand/15 text-brand">
-                <MessageCircle className="size-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-text">{m.who}</span>
-                  <span className="text-[0.65rem] text-muted">{m.time}</span>
+        {recentMessages.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-8 text-center">
+            <MessageCircle className="size-6 text-muted" />
+            <p className="text-xs font-bold text-text">Nenhuma conversa ainda</p>
+            <p className="text-[0.65rem] text-text-soft">
+              Quando rolar interação aqui, as últimas mensagens aparecem nessa área.
+            </p>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {recentMessages.map((m, i) => (
+              <li key={`${m.who}-${i}`} className="flex items-start gap-3 rounded-xl bg-surface-2 px-3 py-2.5">
+                <div className="grid size-8 shrink-0 place-items-center rounded-full bg-brand/15 text-brand">
+                  <MessageCircle className="size-4" />
                 </div>
-                <p className="truncate text-xs text-text-soft">{m.msg}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-text">{m.who}</span>
+                    <span className="text-[0.65rem] text-muted">{m.time}</span>
+                  </div>
+                  <p className="truncate text-xs text-text-soft">{m.msg}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

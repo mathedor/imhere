@@ -2,7 +2,11 @@ import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { EstablishmentDashboardClient } from "@/components/estabelecimento/DashboardClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
-import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
+import {
+  getCheckinsByDay,
+  getMyEstablishmentContext,
+  getRecentEstabMessages,
+} from "@/lib/db/my-establishment";
 import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +45,11 @@ export default async function EstabelecimentoDashboardPage() {
 
   const place = ctx.establishment;
 
+  const [checkinsByDay, recentMessages] = await Promise.all([
+    getCheckinsByDay(place.id, 30),
+    getRecentEstabMessages(place.id, 6),
+  ]);
+
   return (
     <PanelLayout
       scope="estabelecimento"
@@ -57,6 +66,8 @@ export default async function EstabelecimentoDashboardPage() {
         momentsActive={ctx.momentsActive}
         rating={Number(place.rating ?? 0)}
         instagram={place.instagram ?? undefined}
+        checkinsByDay={checkinsByDay}
+        recentMessages={recentMessages}
       />
     </PanelLayout>
   );
