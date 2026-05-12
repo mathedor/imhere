@@ -10,12 +10,13 @@ create table if not exists public.profile_views (
   check (profile_id <> viewer_id)
 );
 
--- Limita 1 view por dia entre o mesmo par (evita inflar)
-create unique index if not exists idx_profile_views_daily
-  on public.profile_views (profile_id, viewer_id, (date_trunc('day', viewed_at)));
-
+-- Indexes para queries rápidas (controle de "1 view/dia" feito na RPC,
+-- evitando index expression com date_trunc que nao eh IMMUTABLE)
 create index if not exists idx_profile_views_profile_recent
   on public.profile_views (profile_id, viewed_at desc);
+
+create index if not exists idx_profile_views_viewer_target
+  on public.profile_views (viewer_id, profile_id, viewed_at desc);
 
 alter table public.profile_views enable row level security;
 
@@ -33,25 +34,39 @@ create policy "profile_views_self_insert" on public.profile_views for insert
 
 grant all on public.profile_views to anon, authenticated, service_role;
 
--- RPC para registrar uma view (idempotente no dia)
+-- RPC para registrar uma view (1 por dia entre o mesmo par)
+-- Controle feito via EXISTS antes do INSERT (em vez de unique index)
 create or replace function public.record_profile_view(target_id uuid)
 returns void
 language plpgsql security definer set search_path = public
 as $$
+declare
+  start_of_day timestamptz := date_trunc('day', now());
+  already_today boolean;
 begin
-  if target_id = auth.uid() then return; end if;  -- nao conta visualizar a si mesmo
-  insert into public.profile_views(profile_id, viewer_id)
-    values (target_id, auth.uid())
-    on conflict (profile_id, viewer_id, (date_trunc('day', viewed_at))) do nothing;
+  if target_id = auth.uid() then return; end if;
 
-  -- Notifica visitado (so 1 vez por dia por visitor)
+  -- Ja visitou hoje?
+  select exists(
+    select 1 from public.profile_views
+    where profile_id = target_id
+      and viewer_id = auth.uid()
+      and viewed_at >= start_of_day
+  ) into already_today;
+
+  if already_today then return; end if;
+
+  insert into public.profile_views(profile_id, viewer_id)
+    values (target_id, auth.uid());
+
+  -- Notifica visitado (1x/dia)
   insert into public.notifications(profile_id, kind, title, body, link)
     select target_id, 'profile_view', 'Alguém visitou seu perfil 👀',
       'Veja quem está olhando você (Premium)', '/app/visitas'
     where not exists (
       select 1 from public.notifications
       where profile_id = target_id and kind = 'profile_view'
-        and created_at::date = current_date
+        and created_at >= start_of_day
     );
 end;
 $$;
