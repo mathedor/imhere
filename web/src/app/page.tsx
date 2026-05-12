@@ -71,7 +71,7 @@ export default function LandingPage() {
           </Link>
         </nav>
         <Link
-          href="/cadastro"
+          href="/login"
           className="md:hidden rounded-pill bg-brand px-3 py-1.5 text-xs font-bold text-white"
         >
           Entrar

@@ -90,12 +90,15 @@ function LoginForm() {
         </p>
       </div>
 
-      <p className="mt-5 text-center text-sm text-text-soft">
-        Novo por aqui?{" "}
-        <Link href="/cadastro" className="font-bold text-brand hover:underline">
-          Criar conta
+      <div className="mt-5 flex flex-col items-center gap-2">
+        <span className="text-xs text-text-soft">Novo por aqui?</span>
+        <Link
+          href="/cadastro"
+          className="w-full max-w-sm rounded-2xl border-2 border-brand bg-brand/5 px-5 py-3 text-center text-sm font-extrabold uppercase tracking-wider text-brand transition-colors hover:bg-brand/10"
+        >
+          Criar conta grátis →
         </Link>
-      </p>
+      </div>
     </motion.div>
   );
 }
