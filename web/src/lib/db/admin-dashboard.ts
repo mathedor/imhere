@@ -168,6 +168,23 @@ export async function getNewUsersByDay(days = 30): Promise<DailyPoint[]> {
   return bucketsToSeries(buckets);
 }
 
+export async function getAllCheckinsByDay(days = 30): Promise<DailyPoint[]> {
+  if (isMockMode()) return mockSeries(days, 220);
+  const sb = await supabaseServer();
+  const start = daysBack(days);
+  const { data } = await sb
+    .from("checkins")
+    .select("checked_in_at")
+    .gte("checked_in_at", start.toISOString())
+    .limit(10000);
+  const buckets = buildDailyBuckets(days);
+  for (const row of (data ?? []) as Array<{ checked_in_at: string }>) {
+    const key = row.checked_in_at.slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  return bucketsToSeries(buckets);
+}
+
 export async function getInteractionsByDay(days = 30): Promise<DailyPoint[]> {
   if (isMockMode()) return mockSeries(days, 380);
   const sb = await supabaseServer();
