@@ -20,12 +20,14 @@ export interface SalesAgent {
 export async function listSalesAgents(): Promise<SalesAgent[]> {
   if (isMockMode()) return [];
 
-  const sb = await supabaseServer();
-  const { data: agents } = await sb
-    .from("profiles")
-    .select("id, name, email")
-    .eq("role", "sales")
-    .order("name");
+  try {
+    const sb = await supabaseServer();
+    const { data: agents, error } = await sb
+      .from("profiles")
+      .select("id, name, email")
+      .eq("role", "sales")
+      .order("name");
+    if (error) throw error;
 
   if (!agents || agents.length === 0) return [];
   const ids = agents.map((a) => a.id);
@@ -68,6 +70,10 @@ export async function listSalesAgents(): Promise<SalesAgent[]> {
       commissionCents: Math.round(mrr * COMMISSION_PCT),
     };
   });
+  } catch (err) {
+    console.error("[sales-agents] listSalesAgents falhou:", err);
+    return [];
+  }
 }
 
 export interface CommercialEstab {
