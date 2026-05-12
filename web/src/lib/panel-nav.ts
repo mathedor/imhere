@@ -17,6 +17,7 @@ import {
   Star,
   Target,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 import type { PanelNavItem } from "@/components/panel/PanelLayout";
 import type { PanelQuickItem } from "@/components/panel/PanelBottomNav";
@@ -51,6 +52,7 @@ export const QUICK_ADMIN: PanelQuickItem[] = [
 export const NAV_ESTAB: PanelNavItem[] = [
   { href: "/estabelecimento", label: "Dashboard", icon: LayoutDashboard },
   { href: "/estabelecimento/perfil", label: "Perfil & itens", icon: Sparkles },
+  { href: "/estabelecimento/cardapio", label: "Cardápio", icon: UtensilsCrossed },
   { href: "/estabelecimento/pessoas", label: "Pessoas no local", icon: Users, badge: 187 },
   { href: "/estabelecimento/momento", label: "No Momento", icon: Camera, badge: "NEW" },
   { href: "/estabelecimento/cortesias", label: "Mensagens & cortesias", icon: Gift, badge: 3 },
