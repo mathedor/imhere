@@ -15,7 +15,7 @@ export interface Column<T> {
   accessor?: (row: T) => string | number;
 }
 
-interface Props<T extends Record<string, unknown>> {
+interface Props<T extends object> {
   columns: Column<T>[];
   data: T[];
   pageSize?: number;
@@ -24,7 +24,7 @@ interface Props<T extends Record<string, unknown>> {
   onRowClick?: (row: T) => void;
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends object>({
   columns,
   data,
   pageSize = 10,
