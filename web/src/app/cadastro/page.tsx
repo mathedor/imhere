@@ -5,8 +5,10 @@ import { ArrowLeft, ArrowRight, Building2, CheckCircle2, Eye, EyeOff, User as Us
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { AddressFieldset } from "@/components/AddressFieldset";
 import { Field, Input, Select } from "@/components/Field";
 import { Logo } from "@/components/Logo";
+import { MaskedInput } from "@/components/MaskedInput";
 import { signUpEstablishmentAction, signUpUserAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
 

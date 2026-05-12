@@ -25,8 +25,9 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { AdminSidebarToggle } from "@/components/admin/AdminSidebarToggle";
+import { AdminBottomNav } from "@/components/admin/AdminBottomNav";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
 
 interface NavItem {
@@ -149,10 +150,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-bg/85 px-5 py-3 backdrop-blur-md md:px-8">
-          <AdminSidebarToggle>
-            <Sidebar />
-          </AdminSidebarToggle>
+        <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-bg/85 px-4 py-3 backdrop-blur-md md:px-8">
+          {/* Mobile: logo · Desktop: label */}
           <Link href="/admin" className="flex items-center gap-2 md:hidden">
             <Logo size={26} compact />
           </Link>
@@ -161,24 +160,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Painel Admin
             </span>
           </div>
-          <Link
-            href="/admin/notificacoes"
-            className="grid size-9 place-items-center rounded-xl border border-border text-text-soft hover:text-text"
-            aria-label="Notificações"
-          >
-            <Bell className="size-4" />
-          </Link>
-          <Link
-            href="/admin/relatorios"
-            className="hidden items-center gap-1.5 rounded-pill bg-gradient-to-r from-brand-strong to-brand px-3 py-2 text-xs font-bold text-white shadow-glow md:flex"
-          >
-            <BarChart3 className="size-3.5" />
-            Relatórios
-          </Link>
+          <div className="flex flex-1 items-center justify-end gap-2 md:flex-initial">
+            <Link
+              href="/admin/notificacoes"
+              className="relative grid size-9 place-items-center rounded-xl border border-border text-text-soft transition-colors hover:border-brand/40 hover:text-brand"
+              aria-label="Notificações"
+              title="Notificações"
+            >
+              <Bell className="size-4" />
+              <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-brand live-dot" />
+            </Link>
+            <ThemeToggle compact />
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="grid size-9 place-items-center rounded-xl border border-border text-text-soft transition-colors hover:border-brand/40 hover:text-brand"
+                aria-label="Sair"
+                title="Sair"
+              >
+                <LogOut className="size-4" />
+              </button>
+            </form>
+            <Link
+              href="/admin/relatorios"
+              className="hidden items-center gap-1.5 rounded-pill bg-gradient-to-r from-brand-strong to-brand px-3 py-2 text-xs font-bold text-white shadow-glow lg:flex"
+            >
+              <BarChart3 className="size-3.5" />
+              Relatórios
+            </Link>
+          </div>
         </header>
 
-        <main className="flex-1 px-5 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="flex-1 px-4 py-5 pb-24 md:px-8 md:py-8 md:pb-8">{children}</main>
       </div>
+
+      {/* Bottom nav mobile */}
+      <AdminBottomNav drawerContent={<Sidebar />} />
     </div>
   );
 }
