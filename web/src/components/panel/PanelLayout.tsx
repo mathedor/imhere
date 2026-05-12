@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
+import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
 import { PanelBottomNav, type PanelQuickItem } from "./PanelBottomNav";
 
@@ -116,9 +117,15 @@ export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, child
           <p className="truncate text-xs font-bold text-text">{user.name}</p>
           <p className="truncate text-[0.65rem] text-muted">{user.role}</p>
         </div>
-        <button className="grid size-7 place-items-center rounded-lg text-muted hover:text-text" title="Sair">
-          <LogOut className="size-3.5" />
-        </button>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="grid size-7 place-items-center rounded-lg text-muted hover:text-text"
+            title="Sair"
+          >
+            <LogOut className="size-3.5" />
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -163,10 +170,17 @@ export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, child
           <button className="hidden md:grid size-9 place-items-center rounded-xl border border-border text-text-soft hover:text-text">
             <Search className="size-4" />
           </button>
-          <button className="relative grid size-9 place-items-center rounded-xl border border-border text-text-soft hover:text-text">
+          <Link
+            href={
+              scope === "admin" ? "/admin/notificacoes"
+              : scope === "estabelecimento" ? "/estabelecimento/notificacoes"
+              : "/comercial/notificacoes"
+            }
+            className="relative grid size-9 place-items-center rounded-xl border border-border text-text-soft hover:text-text"
+          >
             <Bell className="size-4" />
             <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-brand live-dot" />
-          </button>
+          </Link>
         </header>
 
         <main className={cn("flex-1 px-5 py-6 md:px-8 md:py-8", quickNav && "pb-28 md:pb-8")}>{children}</main>

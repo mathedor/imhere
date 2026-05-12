@@ -7,6 +7,7 @@ import { useState } from "react";
 import { DateInput } from "@/components/DateInput";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import { MaskedInput } from "@/components/MaskedInput";
+import { createUserAction, deleteUserAction, updateUserAction } from "@/lib/actions/admin-users";
 
 interface Props {
   mode: "create" | "edit";
@@ -28,17 +29,13 @@ interface Props {
 }
 
 export function UserForm({ mode, initial }: Props) {
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
   const isEdit = mode === "edit";
-
-  function save(e: React.FormEvent) {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
+  const action = isEdit ? updateUserAction : createUserAction;
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-5">
+    <form action={action} onSubmit={() => setLoading(true)} className="flex flex-col gap-5">
+      {isEdit && initial?.id && <input type="hidden" name="id" value={initial.id} />}
       <Link href="/admin/usuarios" className="inline-flex w-fit items-center gap-1 text-xs text-text-soft hover:text-text">
         <ArrowLeft className="size-3.5" />
         Voltar à lista
@@ -126,7 +123,9 @@ export function UserForm({ mode, initial }: Props) {
             whileHover={{ y: -1 }}
             className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-5 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-glow"
           >
-            {saved ? "Salvo ✓" : (
+            {loading ? (
+              <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
               <>
                 <Save className="size-4" />
                 {isEdit ? "Salvar alterações" : "Criar usuário"}
@@ -134,14 +133,20 @@ export function UserForm({ mode, initial }: Props) {
             )}
           </motion.button>
 
-          {isEdit && (
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-5 py-2.5 text-xs font-bold text-brand hover:border-brand"
-            >
-              <Trash2 className="size-3.5" />
-              Excluir usuário
-            </button>
+          {isEdit && initial?.id && (
+            <form action={deleteUserAction}>
+              <input type="hidden" name="id" value={initial.id} />
+              <button
+                type="submit"
+                onClick={(e) => {
+                  if (!confirm("Excluir este usuário? Esta ação não pode ser desfeita.")) e.preventDefault();
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-5 py-2.5 text-xs font-bold text-brand hover:border-brand"
+              >
+                <Trash2 className="size-3.5" />
+                Excluir usuário
+              </button>
+            </form>
           )}
         </aside>
       </div>

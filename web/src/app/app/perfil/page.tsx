@@ -16,6 +16,7 @@ import { useState } from "react";
 import { DateInput } from "@/components/DateInput";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import { MaskedInput } from "@/components/MaskedInput";
+import { updateMyProfileAction } from "@/lib/actions/profile";
 import { cn } from "@/lib/utils";
 
 const initialPhotos = [
@@ -27,15 +28,11 @@ const initialPhotos = [
 export default function PerfilPage() {
   const [status, setStatus] = useState<"open" | "watching" | "invisible">("open");
   const [photos, setPhotos] = useState(initialPhotos);
-  const [saved, setSaved] = useState(false);
-
-  function save() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
+  const [loading, setLoading] = useState(false);
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-5 pb-8">
+    <form action={updateMyProfileAction} onSubmit={() => setLoading(true)} className="mx-auto w-full max-w-4xl px-5 pb-8">
+      <input type="hidden" name="status" value={status} />
       <header className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-text md:text-4xl">Meu perfil</h1>
@@ -120,25 +117,25 @@ export default function PerfilPage() {
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nome completo">
-            <Input defaultValue="Mateus Henrique Silva" />
+            <Input name="name" defaultValue="Mateus Henrique Silva" required />
           </Field>
-          <Field label="E-mail" hint="Usado para login e recuperação">
-            <Input type="email" defaultValue="mateus@exemplo.com" />
+          <Field label="E-mail" hint="Não editável aqui">
+            <Input type="email" defaultValue="mateus@exemplo.com" disabled />
           </Field>
           <Field label="WhatsApp">
-            <MaskedInput mask="phone" defaultValue="(48) 99999-1234" />
+            <MaskedInput mask="phone" name="whatsapp" defaultValue="(48) 99999-1234" />
           </Field>
           <Field label="CPF">
-            <MaskedInput mask="cpf" placeholder="000.000.000-00" />
+            <MaskedInput mask="cpf" name="cpf" placeholder="000.000.000-00" />
           </Field>
           <Field label="Instagram">
-            <Input defaultValue="@mateusxh" />
+            <Input name="instagram" defaultValue="@mateusxh" />
           </Field>
           <Field label="Data de nascimento">
-            <DateInput defaultValue="1994-03-12" />
+            <DateInput name="birth" defaultValue="1994-03-12" />
           </Field>
           <Field label="Gênero">
-            <Select defaultValue="male">
+            <Select name="gender" defaultValue="male">
               <option value="male">Masculino</option>
               <option value="female">Feminino</option>
               <option value="other">Outro</option>
@@ -146,10 +143,11 @@ export default function PerfilPage() {
             </Select>
           </Field>
           <Field label="Profissão" className="sm:col-span-2">
-            <Input defaultValue="Designer UX" />
+            <Input name="profession" defaultValue="Designer UX" />
           </Field>
           <Field label="Sobre você" hint="Máx 240 caracteres" className="sm:col-span-2">
             <Textarea
+              name="bio"
               maxLength={240}
               defaultValue="Curto bons drinks, música ao vivo e conversas que rendem. Sempre aberto a descobrir lugares novos."
             />
@@ -211,12 +209,15 @@ export default function PerfilPage() {
 
       <div className="sticky bottom-24 z-10 flex justify-end md:bottom-6">
         <motion.button
+          type="submit"
           whileTap={{ scale: 0.96 }}
           whileHover={{ y: -2 }}
-          onClick={save}
-          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-6 py-3 text-sm font-extrabold uppercase tracking-wider text-white shadow-glow"
+          disabled={loading}
+          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-6 py-3 text-sm font-extrabold uppercase tracking-wider text-white shadow-glow disabled:opacity-70"
         >
-          {saved ? "Salvo ✓" : (
+          {loading ? (
+            <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
             <>
               <Save className="size-4" />
               Salvar perfil
@@ -224,6 +225,6 @@ export default function PerfilPage() {
           )}
         </motion.button>
       </div>
-    </div>
+    </form>
   );
 }

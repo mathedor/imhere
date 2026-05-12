@@ -8,6 +8,11 @@ import { useState } from "react";
 import { AddressFieldset } from "@/components/AddressFieldset";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import { MaskedInput } from "@/components/MaskedInput";
+import {
+  createEstablishmentAction,
+  deleteEstablishmentAction,
+  updateEstablishmentAction,
+} from "@/lib/actions/admin-establishments";
 
 interface Props {
   mode: "create" | "edit";
@@ -31,17 +36,13 @@ interface Props {
 }
 
 export function EstablishmentForm({ mode, initial }: Props) {
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
   const isEdit = mode === "edit";
-
-  function save(e: React.FormEvent) {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
+  const action = isEdit ? updateEstablishmentAction : createEstablishmentAction;
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-5">
+    <form action={action} onSubmit={() => setLoading(true)} className="flex flex-col gap-5">
+      {isEdit && initial?.id && <input type="hidden" name="id" value={initial.id} />}
       <Link href="/admin/estabelecimentos" className="inline-flex w-fit items-center gap-1 text-xs text-text-soft hover:text-text">
         <ArrowLeft className="size-3.5" />
         Voltar à lista
@@ -148,7 +149,9 @@ export function EstablishmentForm({ mode, initial }: Props) {
             whileHover={{ y: -1 }}
             className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-5 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-glow"
           >
-            {saved ? "Salvo ✓" : (
+            {loading ? (
+              <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
               <>
                 <Save className="size-4" />
                 {isEdit ? "Salvar alterações" : "Criar estabelecimento"}
@@ -156,14 +159,21 @@ export function EstablishmentForm({ mode, initial }: Props) {
             )}
           </motion.button>
 
-          {isEdit && (
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-5 py-2.5 text-xs font-bold text-brand hover:border-brand"
-            >
-              <Trash2 className="size-3.5" />
-              Excluir estabelecimento
-            </button>
+          {isEdit && initial?.id && (
+            <form action={deleteEstablishmentAction}>
+              <input type="hidden" name="id" value={initial.id} />
+              <button
+                type="submit"
+                onClick={(e) => {
+                  if (!confirm("Excluir este estabelecimento? Todos os check-ins, momentos e cardápio serão removidos."))
+                    e.preventDefault();
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-5 py-2.5 text-xs font-bold text-brand hover:border-brand"
+              >
+                <Trash2 className="size-3.5" />
+                Excluir estabelecimento
+              </button>
+            </form>
           )}
         </aside>
       </div>

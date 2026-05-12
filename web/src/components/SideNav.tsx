@@ -5,6 +5,7 @@ import { Bell, Compass, LogOut, MessageCircle, Sparkles, User } from "lucide-rea
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
+import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -96,13 +97,16 @@ export function SideNav() {
           </span>
         </motion.button>
 
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-muted transition-colors hover:text-text"
-        >
-          <LogOut className="size-4" />
-          Sair
-        </motion.button>
+        <form action={signOutAction}>
+          <motion.button
+            type="submit"
+            whileTap={{ scale: 0.97 }}
+            className="flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-sm text-muted transition-colors hover:text-text"
+          >
+            <LogOut className="size-4" />
+            Sair
+          </motion.button>
+        </form>
       </div>
     </aside>
   );
