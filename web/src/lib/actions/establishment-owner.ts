@@ -6,6 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isMockMode } from "@/lib/supabase/config";
 import { moderate } from "@/lib/moderation";
+import { sendWebPushTo } from "@/lib/push";
 
 async function getMyEstablishmentId(): Promise<string | null> {
   if (isMockMode()) return null;
@@ -31,8 +32,79 @@ export async function postMomentAction(formData: FormData) {
   const sb = await supabaseServer();
   await sb.from("moments").insert({ establishment_id: estabId, image_url: imageUrl, caption });
 
+  // Notifica audience: usuarios com check-in ativo + ultimos visitantes
+  notifyMomentAudience(estabId, caption).catch((e) =>
+    console.error("[notifyMomentAudience]", e)
+  );
+
   revalidatePath("/estabelecimento/momento");
   revalidatePath("/estabelecimento");
+}
+
+/**
+ * Manda notif (in-app + push) pra usuarios que:
+ *  - Estão com check-in ativo no estab agora
+ *  - Já fizeram check-in nos últimos 7 dias (frequentadores)
+ */
+async function notifyMomentAudience(estabId: string, caption: string | null): Promise<void> {
+  if (isMockMode()) return;
+  const admin = supabaseAdmin();
+
+  // Pega nome do estab pra mensagem
+  const { data: estab } = await admin
+    .from("establishments")
+    .select("name")
+    .eq("id", estabId)
+    .maybeSingle();
+  const estabName = estab?.name ?? "Um lugar perto de você";
+
+  // Coleta audience (active + recent 7d)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const [activeRes, recentRes] = await Promise.all([
+    admin.from("checkins").select("profile_id").eq("establishment_id", estabId).eq("status", "active"),
+    admin
+      .from("checkins")
+      .select("profile_id")
+      .eq("establishment_id", estabId)
+      .gte("checked_in_at", sevenDaysAgo)
+      .limit(500),
+  ]);
+
+  const audience = new Set<string>();
+  for (const r of (activeRes.data ?? []) as Array<{ profile_id: string }>) {
+    if (r.profile_id) audience.add(r.profile_id);
+  }
+  for (const r of (recentRes.data ?? []) as Array<{ profile_id: string }>) {
+    if (r.profile_id) audience.add(r.profile_id);
+  }
+
+  if (audience.size === 0) return;
+
+  const title = `${estabName} postou no momento 📸`;
+  const body = caption ?? "Toque pra ver o que tá rolando agora";
+  const link = `/app/estabelecimento/${estabId}/momento`;
+
+  // 1. Insere notifications in-app (1 query batch)
+  const notifRows = Array.from(audience).map((profileId) => ({
+    profile_id: profileId,
+    kind: "moment_posted",
+    title,
+    body,
+    link,
+  }));
+  await admin.from("notifications").insert(notifRows);
+
+  // 2. Web push em paralelo (não bloqueia)
+  await Promise.all(
+    Array.from(audience).map((profileId) =>
+      sendWebPushTo(profileId, {
+        title,
+        body,
+        url: link,
+        tag: `moment-${estabId}`,
+      }).catch(() => 0)
+    )
+  );
 }
 
 export async function deleteMomentAction(formData: FormData) {

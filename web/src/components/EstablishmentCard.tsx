@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Camera, Flame, MapPin, Star, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Establishment, momentoByEstablishment, typeLabel } from "@/data/establishments";
+import { Establishment, typeLabel } from "@/data/establishments";
 import { formatCount, formatDistance } from "@/lib/utils";
 
 interface Props {
@@ -14,8 +14,7 @@ interface Props {
 }
 
 export function EstablishmentCard({ establishment: e, index, onClick }: Props) {
-  const moments = momentoByEstablishment[e.id] ?? [];
-  const hasMomento = moments.length > 0;
+  const hasMomento = !!e.hasMomento;
   return (
     <motion.button
       layout
@@ -45,9 +44,7 @@ export function EstablishmentCard({ establishment: e, index, onClick }: Props) {
           >
             <span className="grid size-11 place-items-center rounded-full bg-bg/85 text-white backdrop-blur">
               <Camera className="size-4" />
-              <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-brand text-[0.55rem] font-bold ring-1 ring-bg">
-                {moments.length}
-              </span>
+              <span className="absolute -right-1 -top-1 grid size-2.5 place-items-center rounded-full bg-brand ring-2 ring-bg live-dot" />
             </span>
           </Link>
         )}

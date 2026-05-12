@@ -50,6 +50,7 @@ export default async function HomePage({
     priceLevel: (e.price_level ?? 2) as 1 | 2 | 3 | 4,
     openNow: e.open_now,
     instagram: e.instagram ?? undefined,
+    hasMomento: e.has_momento ?? false,
   }));
 
   const totalOnline = establishments.reduce((a, e) => a + e.presentNow, 0);
