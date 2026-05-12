@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { PushOptIn } from "@/components/PushOptIn";
 import { KIND_META, mockNotifications } from "@/data/notifications";
-import { markAllNotificationsReadAction } from "@/lib/actions/notifications";
+import { markAllNotificationsReadAction, markNotificationReadAction } from "@/lib/actions/notifications";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "unread" | "social" | "system";
@@ -131,9 +131,29 @@ export default function NotificacoesPage() {
               </div>
             </motion.div>
           );
+          function handleClick() {
+            if (unread) {
+              // Marca local imediato
+              setNotifs((prev) =>
+                prev.map((x) => (x.id === n.id ? { ...x, readAt: "lido" } : x))
+              );
+              // Server action background (não bloqueia navegação)
+              const fd = new FormData();
+              fd.append("id", n.id);
+              markNotificationReadAction(fd).catch(() => {});
+            }
+          }
           return (
             <li key={n.id}>
-              {n.link ? <Link href={n.link}>{content}</Link> : content}
+              {n.link ? (
+                <Link href={n.link} onClick={handleClick}>
+                  {content}
+                </Link>
+              ) : (
+                <button onClick={handleClick} className="w-full text-left">
+                  {content}
+                </button>
+              )}
             </li>
           );
         })}
