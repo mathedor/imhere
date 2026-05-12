@@ -134,7 +134,13 @@ export default function UserPage() {
           </Link>
         )}
 
-        <ContactButton userName={user.name} hasPlan={true} sharedCheckin={true} />
+        <ContactButton
+          toProfileId={user.id}
+          establishmentId={place?.id ?? ""}
+          userName={user.name}
+          hasPlan={true}
+          sharedCheckin={!!place}
+        />
 
         <section>
           <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-muted">Sobre</h2>

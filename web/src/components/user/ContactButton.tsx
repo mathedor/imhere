@@ -4,17 +4,26 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Lock, MessageCircle, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { createContactRequestAction } from "@/lib/actions/user-actions";
 import { cn } from "@/lib/utils";
 
 type State = "idle" | "pending" | "accepted" | "rejected";
 
 interface Props {
+  toProfileId: string;
+  establishmentId: string;
   userName: string;
   hasPlan?: boolean;
   sharedCheckin?: boolean;
 }
 
-export function ContactButton({ userName, hasPlan = false, sharedCheckin = true }: Props) {
+export function ContactButton({
+  toProfileId,
+  establishmentId,
+  userName,
+  hasPlan = false,
+  sharedCheckin = true,
+}: Props) {
   const [state, setState] = useState<State>("idle");
 
   if (!hasPlan) {
@@ -49,17 +58,21 @@ export function ContactButton({ userName, hasPlan = false, sharedCheckin = true 
   }
 
   return (
+    <form
+      action={createContactRequestAction}
+      onSubmit={() => {
+        setState("pending");
+        // O usuário precisa aceitar/recusar do outro lado — aqui só mostra "aguardando"
+      }}
+      className="contents"
+    >
+      <input type="hidden" name="toProfileId" value={toProfileId} />
+      <input type="hidden" name="establishmentId" value={establishmentId} />
     <motion.button
+      type="submit"
       whileTap={state === "idle" ? { scale: 0.97 } : undefined}
       whileHover={state === "idle" ? { y: -2 } : undefined}
       disabled={state !== "idle"}
-      onClick={() => {
-        setState("pending");
-        setTimeout(() => {
-          const outcome = Math.random() > 0.3 ? "accepted" : "rejected";
-          setState(outcome);
-        }, 2200);
-      }}
       className={cn(
         "relative w-full overflow-hidden rounded-2xl px-5 py-4 text-base font-bold transition-all",
         state === "idle" && "bg-gradient-to-r from-brand-strong via-brand to-brand-soft text-white shadow-glow",
@@ -130,5 +143,6 @@ export function ContactButton({ userName, hasPlan = false, sharedCheckin = true 
         />
       )}
     </motion.button>
+    </form>
   );
 }
