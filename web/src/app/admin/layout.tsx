@@ -1,16 +1,22 @@
 import {
+  Activity,
   BarChart3,
   Bell,
   Briefcase,
   Building2,
+  ChevronDown,
   CircleDollarSign,
   Crown,
   FileBarChart,
+  Heart,
   LayoutDashboard,
   LogOut,
+  MapPin,
+  Search as SearchIcon,
   Settings,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +24,14 @@ import { AdminSidebarToggle } from "@/components/admin/AdminSidebarToggle";
 import { Logo } from "@/components/Logo";
 import { signOutAction } from "@/lib/auth/actions";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children?: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[];
+}
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/usuarios", label: "Usuários", icon: Users },
   { href: "/admin/estabelecimentos", label: "Estabelecimentos", icon: Building2 },
@@ -27,7 +40,20 @@ const NAV_ITEMS = [
   { href: "/admin/planos", label: "Planos", icon: Crown },
   { href: "/admin/creditos", label: "Créditos", icon: Sparkles },
   { href: "/admin/moderacao", label: "Moderação", icon: ShieldCheck },
-  { href: "/admin/relatorios", label: "Relatórios", icon: FileBarChart },
+  {
+    href: "/admin/relatorios",
+    label: "Relatórios",
+    icon: FileBarChart,
+    children: [
+      { href: "/admin/relatorios", label: "Visão geral", icon: BarChart3 },
+      { href: "/admin/relatorios/checkins", label: "Check-ins", icon: MapPin },
+      { href: "/admin/relatorios/usuarios", label: "Novos usuários", icon: UserPlus },
+      { href: "/admin/relatorios/online", label: "Online agora", icon: Activity },
+      { href: "/admin/relatorios/buscas", label: "Buscas feitas", icon: SearchIcon },
+      { href: "/admin/relatorios/contatos", label: "Contatos", icon: Heart },
+      { href: "/admin/relatorios/generos", label: "Gêneros", icon: Users },
+    ],
+  },
   { href: "/admin/config", label: "Configurações", icon: Settings },
 ];
 
@@ -45,15 +71,42 @@ function Sidebar() {
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          if (!item.children) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-text-soft transition-all hover:bg-surface-2 hover:text-text"
+              >
+                <Icon className="size-4 shrink-0 transition-colors group-hover:text-brand" />
+                <span className="flex-1 font-semibold">{item.label}</span>
+              </Link>
+            );
+          }
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-text-soft transition-all hover:bg-surface-2 hover:text-text"
-            >
-              <Icon className="size-4 shrink-0 transition-colors group-hover:text-brand" />
-              <span className="flex-1 font-semibold">{item.label}</span>
-            </Link>
+            <details key={item.href} className="group/menu">
+              <summary className="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-text-soft transition-all hover:bg-surface-2 hover:text-text [&::-webkit-details-marker]:hidden">
+                <Icon className="size-4 shrink-0 transition-colors group-hover/menu:text-brand" />
+                <span className="flex-1 font-semibold">{item.label}</span>
+                <ChevronDown className="size-3.5 transition-transform group-open/menu:rotate-180" />
+              </summary>
+              <ul className="ml-3 mt-1 flex flex-col gap-0.5 border-l border-border pl-3">
+                {item.children.map((sub) => {
+                  const SubIcon = sub.icon;
+                  return (
+                    <li key={sub.href}>
+                      <Link
+                        href={sub.href}
+                        className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text-soft transition-colors hover:bg-surface-2 hover:text-text"
+                      >
+                        <SubIcon className="size-3.5 shrink-0 text-muted" />
+                        <span className="font-semibold">{sub.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
           );
         })}
       </nav>
