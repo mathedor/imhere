@@ -9,12 +9,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
-import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
+import { DateRangeUrlFilter, type RangeKey } from "@/components/panel/DateRangeUrlFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
 import type { DailyPoint } from "@/lib/db/admin-dashboard";
+import type { LeadStageCount } from "@/lib/db/leads";
+import { STAGE_COLOR, STAGE_LABEL } from "@/lib/db/leads-meta";
 import type { CommercialContext, CommercialEstab } from "@/lib/db/sales-agents";
 
 const STATUS: Record<CommercialEstab["status"], { bg: string; color: string; label: string }> = {
@@ -82,30 +83,20 @@ const columns: Column<CommercialEstab>[] = [
   { key: "signedAt", label: "Assinado em", sortable: true },
 ];
 
-const PIPELINE_STAGES: Array<{ stage: CommercialEstab["status"]; label: string; color: string }> = [
-  { stage: "lead", label: "Lead", color: "#6b6b75" },
-  { stage: "trial", label: "Trial", color: "#3b82f6" },
-  { stage: "paused", label: "Pausado", color: "#f59e0b" },
-  { stage: "active", label: "Ativo", color: "#22c55e" },
-];
-
 const META_MENSAL_CENTS = 3_000_000;
 
 interface Props {
   ctx: CommercialContext;
   revenueByDay: DailyPoint[];
+  range: RangeKey;
+  days: number;
+  leadCounts: LeadStageCount[];
 }
 
-export function ComercialDashboardClient({ ctx, revenueByDay }: Props) {
-  const [range, setRange] = useState("30d");
-
-  const pipelineCounts = PIPELINE_STAGES.map((s) => ({
-    ...s,
-    count: ctx.estabs.filter((e) => e.status === s.stage).length,
-  }));
-
+export function ComercialDashboardClient({ ctx, revenueByDay, range, days, leadCounts }: Props) {
   const goalPct = Math.min(100, (ctx.mrrCents / META_MENSAL_CENTS) * 100);
   const goalRemainingCents = Math.max(0, META_MENSAL_CENTS - ctx.mrrCents);
+  const totalLeads = leadCounts.reduce((a, l) => a + l.count, 0);
 
   return (
     <>
@@ -113,7 +104,7 @@ export function ComercialDashboardClient({ ctx, revenueByDay }: Props) {
         <span className="text-xs font-bold uppercase tracking-widest text-muted">
           {ctx.profile?.name ? `Olá ${ctx.profile.name.split(" ")[0]}, este é seu mês` : "Visão do mês"}
         </span>
-        <DateRangeFilter value={range as "30d"} onChange={(v) => setRange(v)} />
+        <DateRangeUrlFilter current={range} />
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -152,7 +143,7 @@ export function ComercialDashboardClient({ ctx, revenueByDay }: Props) {
           <div className="mb-4 flex items-end justify-between">
             <div>
               <h2 className="text-sm font-bold text-text">Vendas da plataforma</h2>
-              <p className="text-[0.7rem] text-muted">Receita diária da plataforma · 30d</p>
+              <p className="text-[0.7rem] text-muted">Receita diária da plataforma · {days}d</p>
             </div>
             <span className="flex items-center gap-1.5 rounded-pill bg-success/15 px-2.5 py-1 text-[0.65rem] font-bold text-success">
               <TrendingUp className="size-3" />
@@ -201,14 +192,27 @@ export function ComercialDashboardClient({ ctx, revenueByDay }: Props) {
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-5">
-            <h3 className="mb-3 text-sm font-bold text-text">Pipeline</h3>
-            {pipelineCounts.map((s) => (
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-text">Pipeline</h3>
+              <Link
+                href="/comercial/pipeline"
+                className="text-[0.65rem] font-bold text-brand hover:underline"
+              >
+                {totalLeads} lead{totalLeads !== 1 ? "s" : ""} →
+              </Link>
+            </div>
+            {leadCounts.map((s) => (
               <div key={s.stage} className="mb-2 flex items-center gap-2 last:mb-0">
-                <span className="size-2 rounded-full" style={{ background: s.color }} />
-                <span className="flex-1 text-xs text-text-soft">{s.label}</span>
+                <span className="size-2 rounded-full" style={{ background: STAGE_COLOR[s.stage] }} />
+                <span className="flex-1 text-xs text-text-soft">{STAGE_LABEL[s.stage]}</span>
                 <span className="text-sm font-bold text-text">{s.count}</span>
               </div>
             ))}
+            {totalLeads === 0 && (
+              <p className="mt-2 text-[0.65rem] text-muted">
+                Nenhum lead ainda · <Link href="/comercial/pipeline/novo" className="font-bold text-brand">criar primeiro</Link>
+              </p>
+            )}
           </div>
         </div>
       </section>

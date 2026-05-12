@@ -12,10 +12,10 @@ export function Logo({ className, showWordmark = true, size = 36 }: LogoProps) {
       <LogoMark size={size} />
       {showWordmark && (
         <div className="flex flex-col leading-none">
-          <span className="text-[1.35rem] font-black tracking-tight text-text">
+          <span className="logo-wordmark text-[1.35rem] font-black tracking-tight">
             I&apos;m <span className="text-brand">Here</span>
           </span>
-          <span className="mt-0.5 text-[0.6rem] font-medium uppercase tracking-[0.22em] text-muted">
+          <span className="logo-wordmark-soft mt-0.5 text-[0.6rem] font-medium uppercase tracking-[0.22em]">
             check-in social
           </span>
         </div>

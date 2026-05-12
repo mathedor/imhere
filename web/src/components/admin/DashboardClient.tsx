@@ -14,10 +14,9 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
-import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
+import { DateRangeUrlFilter, type RangeKey } from "@/components/panel/DateRangeUrlFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
 import type { DailyPoint, DashboardKPIs, PlanRow, RecentSubscription } from "@/lib/db/admin-dashboard";
 
@@ -98,6 +97,7 @@ interface Props {
   revenueByDay: DailyPoint[];
   usersByDay: DailyPoint[];
   interactionsByDay: DailyPoint[];
+  range: RangeKey;
 }
 
 export function AdminDashboardClient({
@@ -107,8 +107,8 @@ export function AdminDashboardClient({
   revenueByDay,
   usersByDay,
   interactionsByDay,
+  range,
 }: Props) {
-  const [range, setRange] = useState("30d");
   const planTotal = planDistribution.reduce((a, p) => a + p.count, 0);
 
   return (
@@ -117,7 +117,7 @@ export function AdminDashboardClient({
         <span className="text-xs font-bold uppercase tracking-widest text-muted">
           Visão geral
         </span>
-        <DateRangeFilter value={range as "30d"} onChange={(v) => setRange(v)} />
+        <DateRangeUrlFilter current={range} />
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">

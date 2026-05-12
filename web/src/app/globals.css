@@ -69,7 +69,12 @@ html[data-theme="light"] .logo-pin { fill: url(#pinGrad); }
 html[data-theme="light"] .logo-globe { fill: #ffffff; }
 html[data-theme="light"] .logo-continents { fill: #ef2c39; opacity: 0.92; }
 
-/* Wordmark fica preto no light, branco no dark — automatico via text-text */
+/* Wordmark — branco no dark, preto no light. Forçado via classe pra
+   sobrescrever qualquer contexto (header dark sobre fundo claro etc). */
+.logo-wordmark { color: #ffffff; }
+.logo-wordmark-soft { color: #b8b8c0; }
+html[data-theme="light"] .logo-wordmark { color: #0d0d10; }
+html[data-theme="light"] .logo-wordmark-soft { color: #45454e; }
 
 * {
   -webkit-tap-highlight-color: transparent;

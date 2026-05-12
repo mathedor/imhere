@@ -1,4 +1,5 @@
 import { Mail, Plus, Trophy, Users } from "lucide-react";
+import Link from "next/link";
 import { DataTable, type Column } from "@/components/panel/DataTable";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listSalesAgents, type SalesAgent } from "@/lib/db/sales-agents";
@@ -71,13 +72,13 @@ export default async function ComerciaisPage() {
         <span className="text-xs font-bold uppercase tracking-widest text-muted">
           {agents.length} comerciais ativos
         </span>
-        <button
-          type="button"
+        <Link
+          href="/admin/comerciais/novo"
           className="flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand-strong via-brand to-brand-soft px-4 py-2 text-sm font-bold text-white shadow-glow"
         >
           <Plus className="size-4" />
           Novo comercial
-        </button>
+        </Link>
       </div>
 
       {agents.length === 0 ? (

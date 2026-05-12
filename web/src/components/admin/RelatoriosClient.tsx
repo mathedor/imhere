@@ -3,7 +3,7 @@
 import { Download, FileBarChart, FileSpreadsheet, FileText, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
-import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
+import { DateRangeUrlFilter, type RangeKey } from "@/components/panel/DateRangeUrlFilter";
 import { Select } from "@/components/Field";
 import type { DailyPoint } from "@/lib/db/admin-dashboard";
 
@@ -12,6 +12,8 @@ interface Props {
   users: DailyPoint[];
   interactions: DailyPoint[];
   checkins: DailyPoint[];
+  range: RangeKey;
+  days: number;
 }
 
 type ReportKey = "revenue" | "users" | "interactions" | "checkins";
@@ -44,8 +46,42 @@ function downloadCsv(filename: string, data: DailyPoint[]) {
   URL.revokeObjectURL(url);
 }
 
-export function RelatoriosClient({ revenue, users, interactions, checkins }: Props) {
-  const [range, setRange] = useState("30d");
+function downloadPdf(filename: string, title: string, data: DailyPoint[], total: string, fmt: (v: number) => string) {
+  const rows = data
+    .map(
+      (d, i) =>
+        `<tr style="background:${i % 2 ? "#fafafa" : "#fff"}"><td style="padding:6px 12px;border-bottom:1px solid #eee">${d.label}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600">${fmt(d.value)}</td></tr>`
+    )
+    .join("");
+  const now = new Date().toLocaleString("pt-BR");
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${title}</title><style>
+    body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1f;padding:32px;max-width:780px;margin:0 auto}
+    h1{font-size:28px;margin:0 0 4px;font-weight:800}
+    .meta{color:#6b6b75;font-size:12px;margin-bottom:24px}
+    .total{display:inline-block;background:#ef2c39;color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:24px}
+    table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid #eee;border-radius:8px;overflow:hidden}
+    th{padding:8px 12px;background:#f4f4f6;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b6b75;border-bottom:1px solid #eee}
+    th:last-child{text-align:right}
+    .footer{margin-top:24px;color:#6b6b75;font-size:11px;text-align:center}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+    <h1>${title}</h1>
+    <p class="meta">I'm Here · Relatório gerado em ${now}</p>
+    <span class="total">Total: ${total}</span>
+    <table><thead><tr><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="footer">${data.length} pontos · ${filename}</p>
+    <script>window.onload=()=>window.print()</script>
+  </body></html>`;
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Bloqueador de popup ativo. Libere pra exportar PDF.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+}
+
+export function RelatoriosClient({ revenue, users, interactions, checkins, range, days }: Props) {
   const [selected, setSelected] = useState<ReportKey>("revenue");
   const [city, setCity] = useState("all");
 
@@ -93,7 +129,7 @@ export function RelatoriosClient({ revenue, users, interactions, checkins }: Pro
       <section className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
         <Filter className="size-4 text-brand" />
         <span className="text-xs font-bold uppercase tracking-widest text-muted">Filtros</span>
-        <DateRangeFilter value={range as "30d"} onChange={(v) => setRange(v)} />
+        <DateRangeUrlFilter current={range} />
         <Select value={city} onChange={(e) => setCity(e.target.value)}>
           <option value="all">Todas as cidades</option>
           <option value="sp">São Paulo</option>
@@ -110,19 +146,31 @@ export function RelatoriosClient({ revenue, users, interactions, checkins }: Pro
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            onClick={() => downloadCsv(`${report.key}-30d.csv`, report.data)}
+            onClick={() => downloadCsv(`${report.key}-${range}.csv`, report.data)}
             className="flex items-center gap-1.5 rounded-pill border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-text hover:border-brand/40"
           >
             <FileSpreadsheet className="size-3.5" />
             CSV
           </button>
-          <button className="flex items-center gap-1.5 rounded-pill border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-text hover:border-brand/40">
+          <button
+            type="button"
+            onClick={() =>
+              downloadPdf(
+                `${report.key}-${range}.pdf`,
+                `${report.label} · últimos ${days} dias`,
+                report.data,
+                report.fmt(total),
+                report.fmt
+              )
+            }
+            className="flex items-center gap-1.5 rounded-pill border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-text hover:border-brand/40"
+          >
             <FileText className="size-3.5" />
             PDF
           </button>
           <button
             type="button"
-            onClick={() => downloadCsv(`${report.key}-30d.csv`, report.data)}
+            onClick={() => downloadCsv(`${report.key}-${range}.csv`, report.data)}
             className="flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-brand-strong to-brand px-3 py-2 text-xs font-bold text-white shadow-glow"
           >
             <Download className="size-3.5" />
@@ -136,7 +184,7 @@ export function RelatoriosClient({ revenue, users, interactions, checkins }: Pro
           <div>
             <h2 className="text-lg font-bold text-text">{report.label}</h2>
             <p className="text-xs text-muted">
-              Período: últimos 30 dias · Cidade: {city === "all" ? "Todas" : city.toUpperCase()}
+              Período: últimos {days} dia{days !== 1 ? "s" : ""} · Cidade: {city === "all" ? "Todas" : city.toUpperCase()}
             </p>
           </div>
           <div className="text-right">

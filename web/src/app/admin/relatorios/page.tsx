@@ -1,5 +1,6 @@
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import { RelatoriosClient } from "@/components/admin/RelatoriosClient";
+import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
 import {
   getAllCheckinsByDay,
   getInteractionsByDay,
@@ -10,12 +11,20 @@ import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
-export default async function RelatoriosPage() {
+export default async function RelatoriosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const rangeKey = parseRange(range);
+  const days = rangeToDays(rangeKey);
+
   const [revenue, users, interactions, checkins] = await Promise.all([
-    getRevenueByDay(30),
-    getNewUsersByDay(30),
-    getInteractionsByDay(30),
-    getAllCheckinsByDay(30),
+    getRevenueByDay(days),
+    getNewUsersByDay(days),
+    getInteractionsByDay(days),
+    getAllCheckinsByDay(days),
   ]);
 
   return (
@@ -27,7 +36,14 @@ export default async function RelatoriosPage() {
       quickNav={QUICK_ADMIN}
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
-      <RelatoriosClient revenue={revenue} users={users} interactions={interactions} checkins={checkins} />
+      <RelatoriosClient
+        revenue={revenue}
+        users={users}
+        interactions={interactions}
+        checkins={checkins}
+        range={rangeKey}
+        days={days}
+      />
     </PanelLayout>
   );
 }

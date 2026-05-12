@@ -13,9 +13,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { BarChart } from "@/components/panel/BarChart";
-import { DateRangeFilter } from "@/components/panel/DateRangeFilter";
+import { DateRangeUrlFilter, type RangeKey } from "@/components/panel/DateRangeUrlFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
 import type { DailyPoint, RecentEstabMessage } from "@/lib/db/my-establishment";
 
@@ -28,6 +27,8 @@ interface Props {
   instagram?: string;
   checkinsByDay: DailyPoint[];
   recentMessages: RecentEstabMessage[];
+  range: RangeKey;
+  days: number;
 }
 
 export function EstablishmentDashboardClient({
@@ -39,14 +40,15 @@ export function EstablishmentDashboardClient({
   instagram,
   checkinsByDay,
   recentMessages,
+  range,
+  days,
 }: Props) {
-  const [range, setRange] = useState("30d");
 
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-bold uppercase tracking-widest text-muted">Visão geral</span>
-        <DateRangeFilter value={range as "30d"} onChange={(v) => setRange(v)} />
+        <DateRangeUrlFilter current={range} />
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -117,7 +119,7 @@ export function EstablishmentDashboardClient({
           <div className="mb-4 flex items-end justify-between">
             <div>
               <h2 className="text-sm font-bold text-text">Check-ins por dia</h2>
-              <p className="text-[0.7rem] text-muted">Últimos 30 dias</p>
+              <p className="text-[0.7rem] text-muted">Últimos {days} dia{days !== 1 ? "s" : ""}</p>
             </div>
             <div className="flex items-center gap-1.5 rounded-pill bg-success/15 px-2.5 py-1 text-[0.65rem] font-bold text-success">
               <TrendingUp className="size-3" />

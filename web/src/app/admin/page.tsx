@@ -1,5 +1,6 @@
 import { AdminDashboardClient } from "@/components/admin/DashboardClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
+import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
 import {
   getAdminDashboardKPIs,
   getInteractionsByDay,
@@ -12,14 +13,22 @@ import { NAV_ADMIN, QUICK_ADMIN } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const rangeKey = parseRange(range);
+  const days = rangeToDays(rangeKey);
+
   const [kpis, planDist, recentSubs, revenueByDay, usersByDay, interactionsByDay] = await Promise.all([
     getAdminDashboardKPIs(),
     getPlanDistribution(),
     listRecentSubscriptions(),
-    getRevenueByDay(30),
-    getNewUsersByDay(30),
-    getInteractionsByDay(30),
+    getRevenueByDay(days),
+    getNewUsersByDay(days),
+    getInteractionsByDay(days),
   ]);
 
   return (
@@ -38,6 +47,7 @@ export default async function AdminDashboardPage() {
         revenueByDay={revenueByDay}
         usersByDay={usersByDay}
         interactionsByDay={interactionsByDay}
+        range={rangeKey}
       />
     </PanelLayout>
   );

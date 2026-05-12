@@ -1,6 +1,7 @@
 import { CircleDollarSign, Download, RefreshCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { BarChart } from "@/components/panel/BarChart";
 import { DataTable, type Column } from "@/components/panel/DataTable";
+import { DateRangeUrlFilter, parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
 import { PanelLayout } from "@/components/panel/PanelLayout";
 import {
@@ -79,10 +80,18 @@ const columns: Column<RecentSubscription>[] = [
   { key: "date", label: "Data", sortable: true },
 ];
 
-export default async function VendasPage() {
+export default async function VendasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const rangeKey = parseRange(range);
+  const days = rangeToDays(rangeKey);
+
   const [kpis, revenueByDay, recent] = await Promise.all([
     getSalesKPIs(),
-    getRevenueByDay(30),
+    getRevenueByDay(days),
     listRecentSubscriptions(50),
   ]);
 
@@ -96,9 +105,7 @@ export default async function VendasPage() {
       user={{ name: "Mateus H.", role: "Admin geral" }}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs font-bold uppercase tracking-widest text-muted">
-          Últimos 30 dias
-        </span>
+        <DateRangeUrlFilter current={rangeKey} />
         <button className="flex items-center gap-2 rounded-pill border border-border bg-surface px-4 py-2 text-xs font-bold text-text hover:border-brand/40">
           <Download className="size-3.5" />
           Exportar CSV
@@ -142,7 +149,7 @@ export default async function VendasPage() {
         <div className="mb-3 flex items-end justify-between">
           <div>
             <h2 className="text-sm font-bold text-text">Receita diária</h2>
-            <p className="text-[0.7rem] text-muted">R$ por dia · últimos 30 dias</p>
+            <p className="text-[0.7rem] text-muted">R$ por dia · últimos {days} dias</p>
           </div>
           <span className="rounded-pill bg-success/15 px-2.5 py-1 text-[0.65rem] font-bold text-success">
             MRR: {fmtMoney(kpis.mrrCents)}

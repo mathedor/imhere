@@ -48,6 +48,10 @@ export async function createUserAction(formData: FormData) {
       .eq("id", created.user.id);
   }
   revalidatePath("/admin/usuarios");
+  if (role === "sales") {
+    revalidatePath("/admin/comerciais");
+    redirect("/admin/comerciais");
+  }
   redirect("/admin/usuarios");
 }
 

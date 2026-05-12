@@ -2,6 +2,7 @@ import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { EstablishmentDashboardClient } from "@/components/estabelecimento/DashboardClient";
 import { PanelLayout } from "@/components/panel/PanelLayout";
+import { parseRange, rangeToDays } from "@/components/panel/DateRangeUrlFilter";
 import {
   getCheckinsByDay,
   getMyEstablishmentContext,
@@ -11,7 +12,15 @@ import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
-export default async function EstabelecimentoDashboardPage() {
+export default async function EstabelecimentoDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const rangeKey = parseRange(range);
+  const days = rangeToDays(rangeKey);
+
   const ctx = await getMyEstablishmentContext();
 
   if (!ctx.establishment) {
@@ -46,7 +55,7 @@ export default async function EstabelecimentoDashboardPage() {
   const place = ctx.establishment;
 
   const [checkinsByDay, recentMessages] = await Promise.all([
-    getCheckinsByDay(place.id, 30),
+    getCheckinsByDay(place.id, days),
     getRecentEstabMessages(place.id, 6),
   ]);
 
@@ -68,6 +77,8 @@ export default async function EstabelecimentoDashboardPage() {
         instagram={place.instagram ?? undefined}
         checkinsByDay={checkinsByDay}
         recentMessages={recentMessages}
+        range={rangeKey}
+        days={days}
       />
     </PanelLayout>
   );
