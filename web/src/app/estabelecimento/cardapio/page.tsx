@@ -1,8 +1,6 @@
 import { CardapioEditor, type MenuItem } from "@/components/estabelecimento/CardapioEditor";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listMenuByEstablishment } from "@/lib/db/menu";
 import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -22,15 +20,12 @@ export default async function CardapioEditorPage() {
     : [];
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Cardápio"
-      subtitle={`${items.length} itens · publicado em /cardapio/${ctx.establishment?.slug ?? "seu-slug"}`}
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Gestão", role: "Estabelecimento" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Cardápio</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${items.length} itens · publicado em /cardapio/${ctx.establishment?.slug ?? "seu-slug"}`}</p>
+      </header>
       <CardapioEditor items={items} publicSlug={ctx.establishment?.slug ?? undefined} />
-    </PanelLayout>
+    </>
   );
 }

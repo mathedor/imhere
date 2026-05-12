@@ -6,23 +6,18 @@ import { useState } from "react";
 import { AddressFieldset } from "@/components/AddressFieldset";
 import { Field, Input, Textarea } from "@/components/Field";
 import { MaskedInput } from "@/components/MaskedInput";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { updateEstablishmentProfileAction } from "@/lib/actions/establishment-owner";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export default function EstabelecimentoPerfilPage() {
   const [loading, setLoading] = useState(false);
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Perfil & itens"
-      subtitle="Dados públicos do seu estabelecimento — aparece pros usuários no app"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Carla Pires", role: "Gerente" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Perfil & itens</h1>
+        <p className="mt-1 text-sm text-text-soft">Dados públicos do seu estabelecimento — aparece pros usuários no app</p>
+      </header>
       <form
         action={updateEstablishmentProfileAction}
         onSubmit={() => setLoading(true)}
@@ -108,6 +103,6 @@ export default function EstabelecimentoPerfilPage() {
           </a>
         </aside>
       </form>
-    </PanelLayout>
+    </>
   );
 }

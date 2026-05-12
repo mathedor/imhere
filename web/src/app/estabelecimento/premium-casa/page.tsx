@@ -14,9 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { cn } from "@/lib/utils";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 interface CasaPerk {
   id: string;
@@ -100,14 +98,11 @@ export default function PremiumCasaPage() {
   const total = PERKS.filter((p) => active.includes(p.id)).reduce((a, p) => a + p.monthly, 0);
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Premium da Casa"
-      subtitle="Features que você compra e libera grátis a TODOS os usuários com check-in aqui"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Carla Pires", role: "Gerente" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Premium da Casa</h1>
+        <p className="mt-1 text-sm text-text-soft">Features que você compra e libera grátis a TODOS os usuários com check-in aqui</p>
+      </header>
       <section className="mb-6 overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-brand/15 via-brand/5 to-transparent p-5 md:p-7">
         <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
           <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-strong to-brand text-white shadow-glow">
@@ -229,6 +224,6 @@ export default function PremiumCasaPage() {
           ))}
         </div>
       </section>
-    </PanelLayout>
+    </>
   );
 }

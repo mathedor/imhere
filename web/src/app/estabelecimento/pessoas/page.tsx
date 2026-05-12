@@ -1,7 +1,5 @@
 import { PessoasClient } from "@/components/estabelecimento/PessoasClient";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -22,15 +20,12 @@ export default async function PessoasPage() {
   }));
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Pessoas no local agora"
-      subtitle={`${presentUsers.length} pessoa${presentUsers.length !== 1 ? "s" : ""} com check-in ativo · atualiza em tempo real`}
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Gestão", role: "Estabelecimento" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Pessoas no local agora</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${presentUsers.length} pessoa${presentUsers.length !== 1 ? "s" : ""} com check-in ativo · atualiza em tempo real`}</p>
+      </header>
       <PessoasClient present={presentUsers} />
-    </PanelLayout>
+    </>
   );
 }

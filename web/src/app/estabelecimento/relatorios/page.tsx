@@ -1,14 +1,12 @@
 import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { EstabRelatoriosClient } from "@/components/estabelecimento/RelatoriosClient";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import {
   getCheckinReport,
   getCompetitorReport,
   type Period,
 } from "@/lib/db/admin-reports";
 import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +24,11 @@ export default async function EstabelecimentoRelatoriosPage({
 
   if (!ctx.establishment) {
     return (
-      <PanelLayout
-        scope="estabelecimento"
-        title="Relatórios"
-        subtitle="Aguardando associação"
-        nav={NAV_ESTAB}
-        quickNav={QUICK_ESTAB}
-        user={{ name: "—", role: "Estabelecimento" }}
-      >
+      <>
+        <header className="mb-6">
+          <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Relatórios</h1>
+          <p className="mt-1 text-sm text-text-soft">Aguardando associação</p>
+        </header>
         <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
           <div className="grid size-16 place-items-center rounded-2xl bg-brand/15 text-brand">
             <Building2 className="size-8" />
@@ -49,7 +44,7 @@ export default async function EstabelecimentoRelatoriosPage({
             Cadastrar →
           </Link>
         </div>
-      </PanelLayout>
+      </>
     );
   }
 
@@ -63,14 +58,11 @@ export default async function EstabelecimentoRelatoriosPage({
   ]);
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Relatórios"
-      subtitle={`${place.name} · análise por período + benchmark com concorrência`}
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Gestão", role: "Estabelecimento" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Relatórios</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${place.name} · análise por período + benchmark com concorrência`}</p>
+      </header>
       <EstabRelatoriosClient
         period={period}
         fromIso={sp.from}
@@ -81,6 +73,6 @@ export default async function EstabelecimentoRelatoriosPage({
         presentNow={ctx.presentProfiles.length}
         checkinsToday={ctx.checkinsToday}
       />
-    </PanelLayout>
+    </>
   );
 }

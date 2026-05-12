@@ -1,8 +1,6 @@
 import { MomentoEditor, type MomentItem } from "@/components/estabelecimento/MomentoEditor";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { listMoments } from "@/lib/db/establishments";
 import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -20,15 +18,12 @@ export default async function MomentoPage() {
     : [];
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="No Momento"
-      subtitle="Stories ao vivo do seu estabelecimento · expira em 4h"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Gestão", role: "Estabelecimento" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">No Momento</h1>
+        <p className="mt-1 text-sm text-text-soft">Stories ao vivo do seu estabelecimento · expira em 4h</p>
+      </header>
       <MomentoEditor moments={moments} />
-    </PanelLayout>
+    </>
   );
 }

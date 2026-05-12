@@ -1,14 +1,12 @@
 import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { EstablishmentDashboardClient } from "@/components/estabelecimento/DashboardClient";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { parseRange, rangeToDays } from "@/components/panel/range-utils";
 import {
   getCheckinsByDay,
   getMyEstablishmentContext,
   getRecentEstabMessages,
 } from "@/lib/db/my-establishment";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +23,11 @@ export default async function EstabelecimentoDashboardPage({
 
   if (!ctx.establishment) {
     return (
-      <PanelLayout
-        scope="estabelecimento"
-        title="Painel do estabelecimento"
-        subtitle="Aguardando associação"
-        nav={NAV_ESTAB}
-        quickNav={QUICK_ESTAB}
-        user={{ name: "—", role: "Estabelecimento" }}
-      >
+      <>
+        <header className="mb-6">
+          <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Painel do estabelecimento</h1>
+          <p className="mt-1 text-sm text-text-soft">Aguardando associação</p>
+        </header>
         <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
           <div className="grid size-16 place-items-center rounded-2xl bg-brand/15 text-brand">
             <Building2 className="size-8" />
@@ -48,7 +43,7 @@ export default async function EstabelecimentoDashboardPage({
             Cadastrar agora →
           </Link>
         </div>
-      </PanelLayout>
+      </>
     );
   }
 
@@ -60,14 +55,11 @@ export default async function EstabelecimentoDashboardPage({
   ]);
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title={place.name}
-      subtitle={`${place.address} · ${place.city}/${place.state}`}
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Gestão", role: "Estabelecimento" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">{place.name}</h1>
+        <p className="mt-1 text-sm text-text-soft">{`${place.address} · ${place.city}/${place.state}`}</p>
+      </header>
       <EstablishmentDashboardClient
         presentNow={ctx.presentProfiles.length}
         presentByGender={ctx.presentByGender}
@@ -80,6 +72,6 @@ export default async function EstabelecimentoDashboardPage({
         range={rangeKey}
         days={days}
       />
-    </PanelLayout>
+    </>
   );
 }

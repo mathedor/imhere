@@ -4,10 +4,8 @@ import { motion } from "framer-motion";
 import { Check, Clock, Gift, MessageCircle, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { PanelLayout } from "@/components/panel/PanelLayout";
 import { presentByEstablishment, users } from "@/data/users";
 import { establishments } from "@/data/establishments";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const MY_PLACE = establishments[0];
 
@@ -30,14 +28,11 @@ export default function CortesiasPage() {
   const present = users.filter((u) => presentIds.includes(u.id));
 
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Mensagens & cortesias"
-      subtitle="Envie convites, descontos e atrações pros usuários no seu estabelecimento"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Carla Pires", role: "Gerente" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Mensagens & cortesias</h1>
+        <p className="mt-1 text-sm text-text-soft">Envie convites, descontos e atrações pros usuários no seu estabelecimento</p>
+      </header>
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: "Cortesias hoje", value: "23", color: "#ef2c39" },
@@ -140,6 +135,6 @@ export default function CortesiasPage() {
           })}
         </ul>
       </section>
-    </PanelLayout>
+    </>
   );
 }

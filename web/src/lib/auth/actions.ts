@@ -55,19 +55,27 @@ export async function signUpUserAction(formData: FormData) {
 
   if (isMockMode()) redirect("/app");
 
-  const sb = await supabaseServer();
-  const { data, error } = await sb.auth.signUp({
+  // Cria via admin + auto-confirm (sem confirmacao por email)
+  const admin = supabaseAdmin();
+  const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: { name, whatsapp, role: "user" },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback`,
-    },
+    email_confirm: true,
+    user_metadata: { name, whatsapp, role: "user" },
   });
-  if (error) redirect(`/cadastro?error=${encodeURIComponent(error.message)}`);
-  if (data.user && !data.session) {
-    redirect("/cadastro?confirme=1");
+  if (createErr) redirect(`/cadastro?error=${encodeURIComponent(createErr.message)}`);
+
+  if (created?.user) {
+    // Garante role + whatsapp no profile (trigger pode nao ter pegado)
+    await admin
+      .from("profiles")
+      .update({ role: "user", whatsapp, name })
+      .eq("id", created.user.id);
   }
+
+  // Logar imediatamente
+  const sb = await supabaseServer();
+  await sb.auth.signInWithPassword({ email, password });
   redirect("/app");
 }
 
@@ -96,24 +104,20 @@ export async function signUpEstablishmentAction(formData: FormData) {
 
   if (isMockMode()) redirect("/estabelecimento");
 
-  const sb = await supabaseServer();
-  const { data: signUpData, error: signUpErr } = await sb.auth.signUp({
+  // Cria via admin + auto-confirm
+  const admin = supabaseAdmin();
+  const { data: created, error: signUpErr } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: { name: ownerName, whatsapp, role: "establishment" },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback`,
-    },
+    email_confirm: true,
+    user_metadata: { name: ownerName, whatsapp, role: "establishment" },
   });
   if (signUpErr) redirect(`/cadastro?error=${encodeURIComponent(signUpErr.message)}`);
-  if (!signUpData.user) {
-    redirect("/cadastro?confirme=1");
+  if (!created?.user) {
+    redirect(`/cadastro?error=${encodeURIComponent("Falha ao criar conta")}`);
   }
 
-  // Cria o establishment com owner_id = novo user (via service role pra bypass RLS)
   try {
-    const admin = supabaseAdmin();
-    // Garante que o profile tem role establishment (caso o metadata não tenha pego no trigger)
     await admin
       .from("profiles")
       .update({
@@ -123,11 +127,11 @@ export async function signUpEstablishmentAction(formData: FormData) {
         city,
         state,
       })
-      .eq("id", signUpData.user.id);
+      .eq("id", created!.user.id);
 
     await admin.from("establishments").insert({
-      owner_id: signUpData.user.id,
-      slug: `${slugify(estabName)}-${signUpData.user.id.slice(0, 6)}`,
+      owner_id: created!.user.id,
+      slug: `${slugify(estabName)}-${created!.user.id.slice(0, 6)}`,
       name: estabName,
       type: estabType,
       cnpj,
@@ -140,12 +144,11 @@ export async function signUpEstablishmentAction(formData: FormData) {
     });
   } catch (e) {
     console.error("create establishment failed", e);
-    // Não falha o cadastro — o owner pode completar depois
   }
 
-  if (signUpData.user && !signUpData.session) {
-    redirect("/cadastro?confirme=1");
-  }
+  // Login automatico
+  const sb = await supabaseServer();
+  await sb.auth.signInWithPassword({ email, password });
   redirect("/estabelecimento");
 }
 

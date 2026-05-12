@@ -1,20 +1,15 @@
 "use client";
 
 import { NotificationsList } from "@/components/NotificationsList";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 export default function EstabelecimentoNotificacoesPage() {
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Notificações"
-      subtitle="Check-ins, cortesias resgatadas e mensagens"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Carla Pires", role: "Gerente" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Notificações</h1>
+        <p className="mt-1 text-sm text-text-soft">Check-ins, cortesias resgatadas e mensagens</p>
+      </header>
       <NotificationsList />
-    </PanelLayout>
+    </>
   );
 }

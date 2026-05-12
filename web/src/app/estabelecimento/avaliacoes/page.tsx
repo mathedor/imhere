@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 import { MessageCircle, Star, ThumbsUp, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { KpiCard } from "@/components/panel/KpiCard";
-import { PanelLayout } from "@/components/panel/PanelLayout";
-import { NAV_ESTAB, QUICK_ESTAB } from "@/lib/panel-nav";
 
 const REVIEWS = [
   { id: "r1", user: "Mariana C.", photo: "https://i.pravatar.cc/100?img=47", stars: 5, when: "Hoje", text: "Lugar incrível, drinks autorais maravilhosos! Vou voltar." },
@@ -16,14 +14,11 @@ const REVIEWS = [
 
 export default function AvaliacoesPage() {
   return (
-    <PanelLayout
-      scope="estabelecimento"
-      title="Avaliações"
-      subtitle="O que seus clientes estão dizendo no I'm Here"
-      nav={NAV_ESTAB}
-      quickNav={QUICK_ESTAB}
-      user={{ name: "Carla Pires", role: "Gerente" }}
-    >
+    <>
+      <header className="mb-6">
+        <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Avaliações</h1>
+        <p className="mt-1 text-sm text-text-soft">O que seus clientes estão dizendo no I'm Here</p>
+      </header>
       <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard icon={Star} label="Nota média" value="4.8" delta={{ value: 0.2, sign: "up", period: "30 dias" }} color="#f59e0b" index={0} />
         <KpiCard icon={MessageCircle} label="Total avaliações" value="612" delta={{ value: 12, sign: "up" }} color="#3b82f6" index={1} />
@@ -69,6 +64,6 @@ export default function AvaliacoesPage() {
           ))}
         </ul>
       </section>
-    </PanelLayout>
+    </>
   );
 }
