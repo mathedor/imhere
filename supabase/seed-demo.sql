@@ -102,7 +102,7 @@ from _seed_users u
 where p.id = u.user_id;
 
 -- ============================================================
--- 200+ Check-ins simulados nos últimos 30 dias
+-- ~150 Check-ins históricos (status='left' pra respeitar unique active)
 -- ============================================================
 do $$
 declare
@@ -111,28 +111,50 @@ declare
   i int;
   days_ago int;
   duration_h numeric;
+  checked_at timestamptz;
 begin
   for user_rec in select user_id from _seed_users where user_id is not null
   loop
-    -- Cada user faz 5-12 check-ins aleatórios
-    for i in 1..(5 + floor(random() * 8)::int)
+    for i in 1..(4 + floor(random() * 5)::int)
     loop
-      -- Pega um estab aleatório
       select id into estab_rec from public.establishments order by random() limit 1;
       if estab_rec is null then continue; end if;
-
-      days_ago := floor(random() * 30)::int;
+      days_ago := 1 + floor(random() * 29)::int;
       duration_h := 1.5 + random() * 3;
-
-      insert into public.checkins (profile_id, establishment_id, checked_in_at, left_at, status)
+      checked_at := now() - (days_ago || ' days')::interval - (random() * interval '4 hours');
+      insert into public.checkins (profile_id, establishment_id, checked_in_at, checked_out_at, expires_at, status)
       values (
         user_rec.user_id,
         estab_rec.id,
-        now() - (days_ago || ' days')::interval - (random() * interval '4 hours'),
-        case when days_ago > 0 then now() - (days_ago || ' days')::interval - (random() * interval '1 hour') + (duration_h * interval '1 hour') else null end,
-        case when days_ago > 0 then 'left'::checkin_status else 'active'::checkin_status end
+        checked_at,
+        checked_at + (duration_h * interval '1 hour'),
+        checked_at + interval '6 hours',
+        'left'
       );
     end loop;
+  end loop;
+end$$;
+
+-- 20 check-ins ATIVOS agora (max 1 por user, respeita unique constraint)
+do $$
+declare
+  user_rec record;
+  estab_rec record;
+  checked_at timestamptz;
+begin
+  for user_rec in select user_id from _seed_users where user_id is not null order by random() limit 20
+  loop
+    select id into estab_rec from public.establishments order by random() limit 1;
+    if estab_rec is null then continue; end if;
+    checked_at := now() - (random() * interval '3 hours');
+    insert into public.checkins (profile_id, establishment_id, checked_in_at, expires_at, status)
+    values (
+      user_rec.user_id,
+      estab_rec.id,
+      checked_at,
+      checked_at + interval '6 hours',
+      'active'
+    );
   end loop;
 end$$;
 
@@ -289,47 +311,10 @@ begin
 end$$;
 
 -- ============================================================
--- Reviews / avaliações
+-- Cleanup · _seed_users é TEMP, some sozinho.
+-- Pra rodar de novo sem duplicar users, basta criar de novo
+-- (auth.users tem UNIQUE em email).
 -- ============================================================
-do $$
-declare
-  user_rec record;
-  est_rec record;
-begin
-  for user_rec in select user_id from _seed_users where user_id is not null limit 15
-  loop
-    for est_rec in select id from public.establishments order by random() limit 1 + floor(random() * 2)::int
-    loop
-      insert into public.reviews (profile_id, establishment_id, rating, comment, created_at)
-      values (
-        user_rec.user_id,
-        est_rec.id,
-        3 + floor(random() * 3)::int,
-        (array['Lugar incrível!', 'Boa vibe e bom drink', 'Voltarei sim', 'Atendimento top', 'Música boa'])[1 + floor(random() * 5)::int],
-        now() - (random() * interval '60 days')
-      )
-      on conflict do nothing;
-    end loop;
-  end loop;
-end$$;
-
--- ============================================================
--- Reset: marca alguns checkins como ativos (online agora)
--- ============================================================
-update public.checkins
-set status = 'active', left_at = null
-where id in (
-  select id from public.checkins
-  where checked_in_at > now() - interval '6 hours'
-  order by random()
-  limit 30
-);
-
--- ============================================================
--- Cleanup
--- ============================================================
--- _seed_users é TEMP, some sozinho. Pra rodar de novo sem duplicar
--- users, basta criar de novo (auth.users tem UNIQUE em email)
 
 select
   '✅ Seed completo · login: <slug>@demo.imhere.app · senha: demo123' as resultado,
