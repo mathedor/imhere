@@ -1,13 +1,57 @@
 // Service Worker do I'm Here · Push Notifications + offline shell
 
-const CACHE = "imhere-v1";
+const CACHE = "imhere-v2";
+const PRECACHE = ["/", "/app", "/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(PRECACHE).catch(() => null))
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      ),
+    ])
+  );
+});
+
+// Network-first pra navegação (HTML), cache-first pra estáticos
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  if (request.method !== "GET") return;
+  if (!request.url.startsWith(self.location.origin)) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => null);
+          return res;
+        })
+        .catch(() => caches.match(request).then((r) => r ?? caches.match("/")))
+    );
+    return;
+  }
+
+  if (/\.(?:png|jpg|jpeg|svg|webp|ico|woff2?|css|js)$/.test(request.url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => null);
+          return res;
+        });
+      })
+    );
+  }
 });
 
 self.addEventListener("push", (event) => {

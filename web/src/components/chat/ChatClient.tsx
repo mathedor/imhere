@@ -10,7 +10,7 @@ import { IcebreakerSuggestions } from "@/components/chat/IcebreakerSuggestions";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { ReportButton } from "@/components/chat/ReportButton";
-import { sendMessageAction } from "@/lib/actions/chat";
+import { sendMediaMessageAction, sendMessageAction } from "@/lib/actions/chat";
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 import type { Message } from "@/lib/db/types";
 
@@ -176,7 +176,35 @@ export function ChatClient({
       </div>
 
       <div className="border-t border-border bg-bg/95 px-3 py-3 backdrop-blur-md">
-        <MessageInput onSend={send} balance={credits} isPremiumMedia={isPremiumMedia} />
+        <MessageInput
+          onSend={send}
+          balance={credits}
+          isPremiumMedia={isPremiumMedia}
+          conversationId={conversationId}
+          onSendMedia={async (kind, url, durationSec) => {
+            const optimistic: Message = {
+              id: `tmp-${Date.now()}`,
+              conversation_id: conversationId,
+              sender_id: currentUserId,
+              type: kind,
+              body: null,
+              media_url: url,
+              audio_duration_sec: kind === "audio" ? (durationSec ?? null) : null,
+              link_url: null,
+              link_title: null,
+              status: "sent",
+              blocked_reason: null,
+              created_at: new Date().toISOString(),
+            };
+            setMessages((prev) => [...prev, optimistic]);
+            await sendMediaMessageAction({
+              conversationId,
+              mediaUrl: url,
+              type: kind,
+              durationSec,
+            });
+          }}
+        />
         <p className="mt-2 px-1 text-center text-[0.65rem] text-muted">
           🛡️ Mensagens são moderadas automaticamente · ⚡ Tempo real ativo
         </p>

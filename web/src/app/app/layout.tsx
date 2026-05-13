@@ -4,6 +4,7 @@ import { LowCreditBanner } from "@/components/CreditConfirmDialog";
 import { NpsPrompt } from "@/components/app/NpsPrompt";
 import { OnboardingTour } from "@/components/app/OnboardingTour";
 import { PhotoNudgeBanner } from "@/components/app/PhotoNudgeBanner";
+import { PWAInstallPrompt } from "@/components/app/PWAInstallPrompt";
 import { RealtimeRefresh } from "@/components/RealtimeRefresh";
 import { SideNav } from "@/components/SideNav";
 import { getMyBalance } from "@/lib/actions/credits";
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav unreadChat={counts.chat} />
       <OnboardingTour show={needsOnboarding} />
       <NpsPrompt />
+      <PWAInstallPrompt />
     </div>
   );
 }

@@ -1,12 +1,32 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, CheckCheck, Play } from "lucide-react";
+import { Check, CheckCheck, Pause, Play } from "lucide-react";
 import Image from "next/image";
+import { useRef, useState } from "react";
 import { Message } from "@/data/conversations";
 import { cn } from "@/lib/utils";
 
 export function MessageBubble({ message, fromMe }: { message: Message; fromMe: boolean }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  function togglePlay() {
+    const url = message.imageUrl ?? "";
+    if (!url || message.type !== "audio") return;
+    if (!audioRef.current) {
+      audioRef.current = new Audio(url);
+      audioRef.current.onended = () => setPlaying(false);
+    }
+    if (playing) {
+      audioRef.current.pause();
+      setPlaying(false);
+    } else {
+      audioRef.current.play().catch(() => setPlaying(false));
+      setPlaying(true);
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6, scale: 0.96 }}
@@ -41,12 +61,17 @@ export function MessageBubble({ message, fromMe }: { message: Message; fromMe: b
         {message.type === "audio" && (
           <div className="flex items-center gap-2.5 py-1 pr-1">
             <button
+              onClick={togglePlay}
               className={cn(
                 "grid size-9 place-items-center rounded-full",
                 fromMe ? "bg-white/20" : "bg-brand text-white"
               )}
             >
-              <Play className="size-4 fill-current" />
+              {playing ? (
+                <Pause className="size-4 fill-current" />
+              ) : (
+                <Play className="size-4 fill-current" />
+              )}
             </button>
             <div className="flex flex-col gap-1">
               <div className="flex items-end gap-0.5">

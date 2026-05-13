@@ -1,0 +1,31 @@
+{
+  "name": "I'm Here — check-in social",
+  "short_name": "I'm Here",
+  "description": "Descubra quem está nos lugares perto de você. Conecte-se em tempo real em bares, restaurantes e baladas.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#ef2c39",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["social", "lifestyle", "entertainment"]
+}

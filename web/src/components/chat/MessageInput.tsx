@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ImagePlus, Mic, Send, Smile, X } from "lucide-react";
 import { useState } from "react";
+import { AudioRecorder } from "@/components/chat/AudioRecorder";
+import { PhotoSender } from "@/components/chat/PhotoSender";
 import { CreditConfirmDialog } from "@/components/CreditConfirmDialog";
 import { spendCreditsAction } from "@/lib/actions/credits";
 import { moderate } from "@/lib/moderation";
@@ -10,7 +12,10 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   onSend: (text: string) => void;
-  onSendMedia?: (kind: "image" | "audio", url: string) => void;
+  /** Callback ao enviar mídia (já uploaded) */
+  onSendMedia?: (kind: "image" | "audio", url: string, durationSec?: number) => Promise<void>;
+  /** ID da conversa pro upload */
+  conversationId?: string;
   /** Saldo do usuário (passado pelo ChatClient) */
   balance?: number;
   /** Se for premium não precisa gastar créditos */
@@ -20,11 +25,18 @@ interface Props {
 const PHOTO_COST = 10;
 const AUDIO_COST = 15;
 
-export function MessageInput({ onSend, balance = 0, isPremiumMedia = false }: Props) {
+export function MessageInput({
+  onSend,
+  onSendMedia,
+  conversationId,
+  balance = 0,
+  isPremiumMedia = false,
+}: Props) {
   const [value, setValue] = useState("");
   const [warning, setWarning] = useState<string | null>(null);
   const [blockedMsg, setBlockedMsg] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<"photo" | "audio" | null>(null);
+  const [activeRecorder, setActiveRecorder] = useState<"photo" | "audio" | null>(null);
   const [currentBalance, setCurrentBalance] = useState(balance);
 
   function handleSend() {
@@ -50,8 +62,7 @@ export function MessageInput({ onSend, balance = 0, isPremiumMedia = false }: Pr
 
   function startPhoto() {
     if (isPremiumMedia) {
-      // Premium: vai direto pra galeria (futuro: open file picker)
-      alert("Premium: enviando foto (mock)");
+      setActiveRecorder("photo");
       return;
     }
     setPendingFeature("photo");
@@ -59,7 +70,7 @@ export function MessageInput({ onSend, balance = 0, isPremiumMedia = false }: Pr
 
   function startAudio() {
     if (isPremiumMedia) {
-      alert("Premium: gravando áudio (mock)");
+      setActiveRecorder("audio");
       return;
     }
     setPendingFeature("audio");
@@ -71,8 +82,8 @@ export function MessageInput({ onSend, balance = 0, isPremiumMedia = false }: Pr
     const result = await spendCreditsAction(code);
     if (result.success) {
       setCurrentBalance(result.newBalance);
-      alert(`✓ ${result.message} (saldo: ${result.newBalance})`);
-      // TODO: abrir picker de foto/recorder real e enviar
+      // Abre o recorder/picker real
+      setActiveRecorder(pendingFeature);
     } else {
       alert(result.message);
     }
@@ -113,6 +124,32 @@ export function MessageInput({ onSend, balance = 0, isPremiumMedia = false }: Pr
           </motion.div>
         )}
       </AnimatePresence>
+
+      {activeRecorder === "audio" && conversationId && onSendMedia && (
+        <div className="mb-2">
+          <AudioRecorder
+            conversationId={conversationId}
+            onSend={async (url, dur) => {
+              await onSendMedia("audio", url, dur);
+              setActiveRecorder(null);
+            }}
+            onCancel={() => setActiveRecorder(null)}
+          />
+        </div>
+      )}
+
+      {activeRecorder === "photo" && conversationId && onSendMedia && (
+        <div className="mb-2">
+          <PhotoSender
+            conversationId={conversationId}
+            onSend={async (url) => {
+              await onSendMedia("image", url);
+              setActiveRecorder(null);
+            }}
+            onCancel={() => setActiveRecorder(null)}
+          />
+        </div>
+      )}
 
       <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-1.5 transition-colors focus-within:border-brand/40">
         <motion.button
