@@ -64,7 +64,10 @@ begin
       insert into auth.users (
         id, instance_id, email, encrypted_password,
         email_confirmed_at, created_at, updated_at,
-        raw_app_meta_data, raw_user_meta_data, aud, role
+        raw_app_meta_data, raw_user_meta_data, aud, role,
+        confirmation_token, recovery_token,
+        email_change_token_current, email_change_token_new, email_change,
+        phone_change, phone_change_token, reauthentication_token
       ) values (
         v_uid,
         '00000000-0000-0000-0000-000000000000',
@@ -76,7 +79,8 @@ begin
         '{"provider":"email","providers":["email"]}'::jsonb,
         jsonb_build_object('name', rec.name, 'role', 'user'),
         'authenticated',
-        'authenticated'
+        'authenticated',
+        '', '', '', '', '', '', '', ''
       );
     end if;
     update _seed_users set user_id = v_uid where slug = rec.slug;

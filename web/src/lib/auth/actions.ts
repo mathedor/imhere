@@ -1,11 +1,20 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isMockMode } from "@/lib/supabase/config";
 import { checkRateLimit, getRateLimitKey, LIMITS } from "@/lib/rate-limit";
 import type { EstablishmentType, UserRole } from "@/lib/db/types";
+
+async function getAppOrigin(): Promise<string> {
+  const h = await headers();
+  const forwardedHost = h.get("x-forwarded-host") ?? h.get("host");
+  const forwardedProto = h.get("x-forwarded-proto") ?? "https";
+  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3010";
+}
 
 const ROLE_REDIRECTS: Record<UserRole, string> = {
   user: "/app",
@@ -181,7 +190,8 @@ export async function requestPasswordResetAction(formData: FormData): Promise<{ 
 
   try {
     const sb = await supabaseServer();
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/redefinir-senha`;
+    const origin = await getAppOrigin();
+    const redirectTo = `${origin}/redefinir-senha`;
     await sb.auth.resetPasswordForEmail(email, { redirectTo });
   } catch (err) {
     console.error("[resetPassword]", err);
