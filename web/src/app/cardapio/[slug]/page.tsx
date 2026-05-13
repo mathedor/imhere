@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowLeft, Instagram, MapPin, UtensilsCrossed } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -5,6 +6,26 @@ import { notFound } from "next/navigation";
 import { listMenuBySlug } from "@/lib/db/menu";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const { establishment } = await listMenuBySlug(slug);
+  if (!establishment) return { title: "Estabelecimento" };
+
+  const title = `${establishment.name} · ${establishment.city}/${establishment.state}`;
+  const description = `Veja quem está agora no ${establishment.name}, cardápio digital, fotos e check-in social.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    twitter: { title, description, card: "summary_large_image" },
+  };
+}
 
 function formatPrice(cents: number | null): string {
   if (cents == null) return "—";
