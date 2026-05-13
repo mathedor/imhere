@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { LowCreditBanner } from "@/components/CreditConfirmDialog";
+import { NpsPrompt } from "@/components/app/NpsPrompt";
 import { OnboardingTour } from "@/components/app/OnboardingTour";
 import { PhotoNudgeBanner } from "@/components/app/PhotoNudgeBanner";
 import { RealtimeRefresh } from "@/components/RealtimeRefresh";
@@ -33,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <BottomNav unreadChat={counts.chat} />
       <OnboardingTour show={needsOnboarding} />
+      <NpsPrompt />
     </div>
   );
 }

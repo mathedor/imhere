@@ -12,8 +12,8 @@ import {
   Sparkles,
   Star,
   UserCheck,
-  Users,
   UtensilsCrossed,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { EstabBottomNav } from "@/components/estabelecimento/EstabBottomNav";
@@ -36,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/estabelecimento/momento", label: "No Momento", icon: Camera },
   { href: "/estabelecimento/fidelidade", label: "Fidelidade", icon: Heart },
   { href: "/estabelecimento/broadcast", label: "Disparar aviso", icon: Megaphone },
+  { href: "/estabelecimento/boost", label: "Boost", icon: Zap },
   { href: "/estabelecimento/cortesias", label: "Cortesias", icon: Gift },
   { href: "/estabelecimento/premium-casa", label: "Premium da Casa", icon: Crown },
   { href: "/estabelecimento/relatorios", label: "Relatórios", icon: BarChart3 },

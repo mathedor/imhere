@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Bell,
   Briefcase,
@@ -74,8 +75,13 @@ const NAV_ITEMS: NavItem[] = [
       { href: "/admin/relatorios/horas", label: "Hora de uso", icon: Clock },
       { href: "/admin/relatorios/heatmap", label: "Mapa de calor", icon: Flame },
       { href: "/admin/relatorios/locais", label: "Locais agregados", icon: Map },
+      { href: "/admin/relatorios/mapa", label: "Mapa geográfico", icon: Map },
+      { href: "/admin/relatorios/cohorts", label: "Cohort retenção", icon: Activity },
+      { href: "/admin/relatorios/cohort-revenue", label: "LTV por safra", icon: CircleDollarSign },
+      { href: "/admin/relatorios/match-analysis", label: "Análise de match", icon: Heart },
     ],
   },
+  { href: "/admin/alertas", label: "Alertas", icon: AlertTriangle },
   { href: "/admin/config", label: "Configurações", icon: Settings },
 ];
 

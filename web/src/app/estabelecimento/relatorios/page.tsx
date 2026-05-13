@@ -1,4 +1,4 @@
-import { Building2 } from "lucide-react";
+import { Building2, ChevronRight, Filter } from "lucide-react";
 import Link from "next/link";
 import { EstabRelatoriosClient } from "@/components/estabelecimento/RelatoriosClient";
 import {
@@ -63,6 +63,23 @@ export default async function EstabelecimentoRelatoriosPage({
         <h1 className="text-2xl font-black tracking-tight text-text md:text-3xl">Relatórios</h1>
         <p className="mt-1 text-sm text-text-soft">{`${place.name} · análise por período + benchmark com concorrência`}</p>
       </header>
+
+      <Link
+        href="/estabelecimento/relatorios/funil"
+        className="mb-5 flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-brand/40"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
+          <Filter className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-text">Funil de conversão</p>
+          <p className="text-xs text-text-soft">
+            Check-in → conversa → aceite → retorno · últimos 30 dias
+          </p>
+        </div>
+        <ChevronRight className="size-4 shrink-0 text-text-soft" />
+      </Link>
+
       <EstabRelatoriosClient
         period={period}
         fromIso={sp.from}
