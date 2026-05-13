@@ -1,6 +1,8 @@
-import { ArrowLeft, CheckCircle2, Clock, Heart, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Heart, Sparkles, XCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { getMyMatchStats } from "@/lib/db/match-analysis";
+import { getMyMatchStats, getMyTopAffinityMatches } from "@/lib/db/match-analysis";
+import { getMyQuizAnswers } from "@/lib/db/quiz";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +21,14 @@ const GENDER_COLOR: Record<string, string> = {
 };
 
 export default async function MyMatchAnalysisPage() {
-  const stats = await getMyMatchStats();
+  const [stats, quizAnswers, topAffinities] = await Promise.all([
+    getMyMatchStats(),
+    getMyQuizAnswers(),
+    getMyTopAffinityMatches(6),
+  ]);
   const acceptedTotal = stats.accepted || 1;
   const byGender = Object.entries(stats.acceptedByGender).sort((a, b) => b[1] - a[1]);
+  const quizDone = quizAnswers !== null;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-5 py-5">
@@ -81,6 +88,68 @@ export default async function MyMatchAnalysisPage() {
           value={stats.pending}
           color="#f59e0b"
         />
+      </section>
+
+      {/* Afinidade pelo quiz */}
+      <section className="mb-5 rounded-2xl border border-border bg-surface p-5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-brand" />
+            <h2 className="text-sm font-bold text-text">Maior afinidade com você</h2>
+          </div>
+          {!quizDone && (
+            <Link
+              href="/app/perfil/quiz"
+              className="rounded-pill bg-brand px-3 py-1 text-[0.65rem] font-bold text-white"
+            >
+              Responder
+            </Link>
+          )}
+        </div>
+
+        {!quizDone ? (
+          <p className="py-4 text-center text-xs text-text-soft">
+            Responda o quiz de afinidade (5 perguntas) pra ver com quem você combina mais.
+          </p>
+        ) : topAffinities.length === 0 ? (
+          <p className="py-4 text-center text-xs text-text-soft">
+            Ninguém da rede respondeu o quiz ainda · volte daqui a pouco.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {topAffinities.map((m) => (
+              <li key={m.profileId}>
+                <Link
+                  href={`/app/usuario/${m.profileId}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/40 p-3 transition-colors hover:border-brand/40"
+                >
+                  <div className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-border">
+                    {m.photoUrl ? (
+                      <Image src={m.photoUrl} alt="" fill sizes="44px" className="object-cover" />
+                    ) : (
+                      <div className="grid size-full place-items-center bg-surface-2 text-xs font-bold text-muted">
+                        {m.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 leading-tight">
+                    <p className="text-sm font-bold text-text">{m.name}</p>
+                    {m.city && <p className="text-[0.7rem] text-text-soft">{m.city}</p>}
+                  </div>
+                  <div
+                    className="rounded-pill px-3 py-1 text-xs font-black"
+                    style={{
+                      background: m.score >= 80 ? "rgba(239, 44, 57, 0.15)" : "rgba(168, 85, 247, 0.12)",
+                      color: m.score >= 80 ? "#ef2c39" : "#a855f7",
+                    }}
+                  >
+                    {m.score}%
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Aceites por gênero */}

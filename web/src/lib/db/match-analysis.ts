@@ -91,6 +91,82 @@ export async function getMyMatchStats(): Promise<MyMatchStats> {
 }
 
 // ============================================================
+// Quiz: top afinidades comigo
+// ============================================================
+
+export interface AffinityMatch {
+  profileId: string;
+  name: string;
+  photoUrl: string | null;
+  city: string | null;
+  score: number;
+}
+
+export async function getMyTopAffinityMatches(limit = 6): Promise<AffinityMatch[]> {
+  if (isMockMode()) {
+    return [
+      { profileId: "u1", name: "Letícia", photoUrl: null, city: "Itajaí", score: 100 },
+      { profileId: "u2", name: "Bruno", photoUrl: null, city: "Bal. Camboriú", score: 80 },
+      { profileId: "u3", name: "Camila", photoUrl: null, city: "Itajaí", score: 60 },
+    ];
+  }
+
+  return safe(
+    async () => {
+      const sb = await supabaseServer();
+      const {
+        data: { user },
+      } = await sb.auth.getUser();
+      if (!user) return [];
+
+      // Verifica se o user respondeu o quiz
+      const { data: myAnswers } = await sb
+        .from("profile_quiz_answers")
+        .select("profile_id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+      if (!myAnswers) return [];
+
+      // Candidatos: usuarios que tambem responderam, excluindo eu mesmo
+      const { data: candidates } = await sb
+        .from("profile_quiz_answers")
+        .select("profile_id, profiles!profile_id(name, photo_url, city, role, status)")
+        .neq("profile_id", user.id)
+        .limit(200);
+
+      type Row = {
+        profile_id: string;
+        profiles: { name: string | null; photo_url: string | null; city: string | null; role: string | null; status: string | null } | null;
+      };
+      const rows = (candidates ?? []) as unknown as Row[];
+
+      // Calcula score em paralelo (chama RPC pra cada candidato)
+      const scored = await Promise.all(
+        rows
+          .filter((r) => r.profiles?.role === "user" && r.profiles?.status !== "invisible")
+          .map(async (r) => {
+            const { data: scoreData } = await sb.rpc("calc_quiz_affinity", {
+              profile_a: user.id,
+              profile_b: r.profile_id,
+            });
+            return {
+              profileId: r.profile_id,
+              name: r.profiles?.name ?? "Usuário",
+              photoUrl: r.profiles?.photo_url ?? null,
+              city: r.profiles?.city ?? null,
+              score: (scoreData as number) ?? 0,
+            };
+          })
+      );
+
+      return scored.sort((a, b) => b.score - a.score).slice(0, limit);
+    },
+    [],
+    "getMyTopAffinityMatches"
+  );
+}
+
+// ============================================================
 // Admin: análise agregada de aceitação por gênero / cidade
 // ============================================================
 

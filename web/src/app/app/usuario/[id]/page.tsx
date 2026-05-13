@@ -17,6 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AffinityBadge } from "@/components/user/AffinityBadge";
 import { ContactButton } from "@/components/user/ContactButton";
 import { UserGallery } from "@/components/user/UserGallery";
 import { establishments } from "@/data/establishments";
@@ -140,6 +141,8 @@ export default function UserPage() {
             <span className="size-2 rounded-full bg-success live-dot" />
           </Link>
         )}
+
+        <AffinityBadge otherProfileId={user.id} />
 
         <ContactButton
           toProfileId={user.id}

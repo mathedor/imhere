@@ -4,6 +4,31 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
 
+/** Calcula score de afinidade entre o user logado e outro perfil. Retorna null se algum dos dois não respondeu o quiz. */
+export async function getAffinityWithUserAction(otherProfileId: string): Promise<number | null> {
+  if (isMockMode()) return 75;
+  if (!otherProfileId) return null;
+  try {
+    const sb = await supabaseServer();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    if (!user) return null;
+    if (user.id === otherProfileId) return null;
+
+    const { data, error } = await sb.rpc("calc_quiz_affinity", {
+      profile_a: user.id,
+      profile_b: otherProfileId,
+    });
+    if (error) return null;
+    const score = data as number | null;
+    if (score === null || score === 0) return null;
+    return score;
+  } catch {
+    return null;
+  }
+}
+
 const Q1 = ["agitado", "tranquilo", "misto"] as const;
 const Q2 = ["cerveja", "drink", "vinho", "nenhum"] as const;
 const Q3 = ["sertanejo", "eletronica", "pagode", "rock", "indie"] as const;
