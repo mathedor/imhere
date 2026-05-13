@@ -6,6 +6,7 @@ import {
   getCheckinsByDay,
   getMyEstablishmentContext,
   getRecentEstabMessages,
+  getTopVisitors,
 } from "@/lib/db/my-establishment";
 
 export const dynamic = "force-dynamic";
@@ -49,9 +50,10 @@ export default async function EstabelecimentoDashboardPage({
 
   const place = ctx.establishment;
 
-  const [checkinsByDay, recentMessages] = await Promise.all([
+  const [checkinsByDay, recentMessages, topVisitors] = await Promise.all([
     getCheckinsByDay(place.id, days),
     getRecentEstabMessages(place.id, 6),
+    getTopVisitors(place.id, 8),
   ]);
 
   return (
@@ -71,6 +73,7 @@ export default async function EstabelecimentoDashboardPage({
         recentMessages={recentMessages}
         range={rangeKey}
         days={days}
+        topVisitors={topVisitors}
       />
     </>
   );

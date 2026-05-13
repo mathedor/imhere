@@ -40,11 +40,16 @@ export function EstablishmentCard({ establishment: e, index, onClick }: Props) {
             href={`/app/estabelecimento/${e.id}/momento`}
             onClick={(ev) => ev.stopPropagation()}
             className="absolute right-3 bottom-3 z-10 story-ring rounded-full"
-            title="Ver No Momento"
+            title={`Ver No Momento · ${e.presentNow} aqui agora`}
           >
-            <span className="grid size-11 place-items-center rounded-full bg-bg/85 text-white backdrop-blur">
+            <span className="relative grid size-11 place-items-center rounded-full bg-bg/85 text-white backdrop-blur">
               <Camera className="size-4" />
-              <span className="absolute -right-1 -top-1 grid size-2.5 place-items-center rounded-full bg-brand ring-2 ring-bg live-dot" />
+              {e.presentNow > 0 && (
+                <span className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-pill bg-brand px-1.5 py-0.5 text-[0.5rem] font-black text-white shadow-glow whitespace-nowrap ring-1 ring-bg">
+                  <span className="size-1 rounded-full bg-white live-dot" />
+                  {formatCount(e.presentNow)} agora
+                </span>
+              )}
             </span>
           </Link>
         )}

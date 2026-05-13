@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { LoyaltyProgressCard } from "@/components/app/LoyaltyProgressCard";
 import { EstablishmentDetail } from "@/components/establishment/EstablishmentDetail";
 import { getCurrentCheckin } from "@/lib/db/checkins";
 import { getEstablishment, listMoments, listPresentUsers } from "@/lib/db/establishments";
+import { getMyProgressForEstab } from "@/lib/db/loyalty";
 import { listMenuByEstablishment } from "@/lib/db/menu";
 import { getCurrentProfile } from "@/lib/db/profiles";
 import type { Establishment as EstabUI, EstablishmentType } from "@/data/establishments";
@@ -14,12 +16,13 @@ export default async function EstablishmentPage({ params }: { params: Promise<{ 
   const place = await getEstablishment(id);
   if (!place) notFound();
 
-  const [presentProfiles, moments, menu, myCheckin, profile] = await Promise.all([
+  const [presentProfiles, moments, menu, myCheckin, profile, loyaltyProgress] = await Promise.all([
     listPresentUsers(place.id),
     listMoments(place.id),
     listMenuByEstablishment(place.id),
     getCurrentCheckin(),
     getCurrentProfile(),
+    getMyProgressForEstab(place.id),
   ]);
 
   const cocAccepted = !!(profile as { code_of_conduct_accepted_at?: string | null } | null)?.code_of_conduct_accepted_at;
@@ -70,13 +73,20 @@ export default async function EstablishmentPage({ params }: { params: Promise<{ 
   }));
 
   return (
-    <EstablishmentDetail
-      place={placeUI}
-      present={presentUI}
-      hasMomento={moments.length > 0}
-      hasMenu={menu.length > 0}
-      iAmCheckedInHere={iAmCheckedInHere}
-      codeOfConductAccepted={cocAccepted}
-    />
+    <>
+      <EstablishmentDetail
+        place={placeUI}
+        present={presentUI}
+        hasMomento={moments.length > 0}
+        hasMenu={menu.length > 0}
+        iAmCheckedInHere={iAmCheckedInHere}
+        codeOfConductAccepted={cocAccepted}
+      />
+      {loyaltyProgress.length > 0 && (
+        <div className="mx-auto -mt-4 w-full max-w-5xl px-5 pb-6">
+          <LoyaltyProgressCard programs={loyaltyProgress} estabName={place.name} />
+        </div>
+      )}
+    </>
   );
 }

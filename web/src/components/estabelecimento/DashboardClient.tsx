@@ -8,15 +8,17 @@ import {
   Instagram,
   MessageCircle,
   Star,
+  Trophy,
   TrendingUp,
   UserCheck,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { BarChart } from "@/components/panel/BarChart";
 import { DateRangeUrlFilter, type RangeKey } from "@/components/panel/DateRangeUrlFilter";
 import { KpiCard } from "@/components/panel/KpiCard";
-import type { DailyPoint, RecentEstabMessage } from "@/lib/db/my-establishment";
+import type { DailyPoint, RecentEstabMessage, TopVisitor } from "@/lib/db/my-establishment";
 
 interface Props {
   presentNow: number;
@@ -29,6 +31,7 @@ interface Props {
   recentMessages: RecentEstabMessage[];
   range: RangeKey;
   days: number;
+  topVisitors?: TopVisitor[];
 }
 
 export function EstablishmentDashboardClient({
@@ -42,6 +45,7 @@ export function EstablishmentDashboardClient({
   recentMessages,
   range,
   days,
+  topVisitors = [],
 }: Props) {
 
   return (
@@ -166,6 +170,56 @@ export function EstablishmentDashboardClient({
           </div>
         </div>
       </section>
+
+      {topVisitors.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="size-4 text-warn" />
+              <h2 className="text-sm font-bold text-text">Top frequentadores (30d)</h2>
+            </div>
+            <Link
+              href="/estabelecimento/fidelidade"
+              className="text-xs font-bold text-brand hover:underline"
+            >
+              Premiar →
+            </Link>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {topVisitors.map((v, i) => {
+              const medal = i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : i === 2 ? "#b45309" : "#6b6b75";
+              return (
+                <li
+                  key={v.profileId}
+                  className="flex items-center gap-3 rounded-xl bg-surface-2 px-3 py-2.5"
+                >
+                  <span
+                    className="grid size-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
+                    style={{ background: medal }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="relative size-9 shrink-0 overflow-hidden rounded-full bg-surface">
+                    {v.photo ? (
+                      <Image src={v.photo} alt={v.name} fill sizes="36px" className="object-cover" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-xs font-bold text-muted">
+                        {v.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <p className="truncate text-sm font-bold text-text">{v.name}</p>
+                    <p className="text-[0.65rem] text-text-soft">
+                      {v.checkins} check-in{v.checkins !== 1 ? "s" : ""} este mês
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
         <div className="mb-3 flex items-center justify-between">

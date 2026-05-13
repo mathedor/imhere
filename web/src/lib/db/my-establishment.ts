@@ -93,6 +93,58 @@ export async function getRecentEstabMessages(estabId: string, limit = 6): Promis
   }));
 }
 
+export interface TopVisitor {
+  profileId: string;
+  name: string;
+  photo: string | null;
+  checkins: number;
+  lastCheckinAt: string | null;
+}
+
+export async function getTopVisitors(estabId: string, limit = 8): Promise<TopVisitor[]> {
+  if (isMockMode()) return [];
+  try {
+    const sb = await supabaseServer();
+    const thirty = new Date(Date.now() - 30 * 86400_000).toISOString();
+    const { data } = await sb
+      .from("checkins")
+      .select("profile_id, checked_in_at, profiles(name, photo_url)")
+      .eq("establishment_id", estabId)
+      .gte("checked_in_at", thirty)
+      .limit(5000);
+
+    const map = new Map<string, TopVisitor>();
+    for (const row of (data ?? []) as unknown as Array<{
+      profile_id: string;
+      checked_in_at: string;
+      profiles: { name: string | null; photo_url: string | null } | null;
+    }>) {
+      const existing = map.get(row.profile_id);
+      if (existing) {
+        existing.checkins += 1;
+        if (!existing.lastCheckinAt || row.checked_in_at > existing.lastCheckinAt) {
+          existing.lastCheckinAt = row.checked_in_at;
+        }
+      } else {
+        map.set(row.profile_id, {
+          profileId: row.profile_id,
+          name: row.profiles?.name ?? "—",
+          photo: row.profiles?.photo_url ?? null,
+          checkins: 1,
+          lastCheckinAt: row.checked_in_at,
+        });
+      }
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => b.checkins - a.checkins)
+      .slice(0, limit);
+  } catch (err) {
+    console.error("[getTopVisitors]", err);
+    return [];
+  }
+}
+
 export interface MyEstabContext {
   establishment: Establishment | null;
   presentProfiles: Profile[];
