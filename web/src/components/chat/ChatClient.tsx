@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { IcebreakerSuggestions } from "@/components/chat/IcebreakerSuggestions";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { ReportButton } from "@/components/chat/ReportButton";
@@ -140,8 +141,12 @@ export function ChatClient({
         </motion.div>
 
         {messages.length === 0 ? (
-          <div className="mt-12 text-center text-xs text-muted">
-            <p>Mande a primeira mensagem 👋</p>
+          <div className="mt-8 px-3">
+            <IcebreakerSuggestions
+              otherName={otherUser.name}
+              estabName={establishment?.name}
+              onPick={(text) => send(text)}
+            />
           </div>
         ) : (
           <div className="flex flex-col gap-2">

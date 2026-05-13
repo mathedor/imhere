@@ -213,6 +213,22 @@ export function PerfilForm({ initial }: { initial: InitialProfile }) {
         </div>
       </section>
 
+      <Link
+        href="/app/perfil/verificacao"
+        className="mb-6 flex items-center gap-3 rounded-2xl border border-brand/30 bg-gradient-to-r from-brand/10 via-warn/5 to-brand/10 p-4 transition-all hover:border-brand"
+      >
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-strong to-brand text-white shadow-glow">
+          <Sparkles className="size-5" />
+        </div>
+        <div className="flex-1 leading-tight">
+          <p className="text-sm font-bold text-text">Verificar identidade</p>
+          <p className="text-[0.7rem] text-text-soft">
+            Ganhe badge ✓ azul · 3x mais aceite de contato
+          </p>
+        </div>
+        <span className="text-xs font-bold text-brand">Verificar →</span>
+      </Link>
+
       <div className="sticky bottom-24 z-10 flex justify-end md:bottom-6">
         <motion.button
           type="submit"

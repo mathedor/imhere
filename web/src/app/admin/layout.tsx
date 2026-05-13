@@ -45,7 +45,15 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/comerciais", label: "Comerciais", icon: Briefcase },
   { href: "/admin/planos", label: "Planos", icon: Crown },
   { href: "/admin/creditos", label: "Créditos", icon: Sparkles },
-  { href: "/admin/moderacao", label: "Moderação", icon: ShieldCheck },
+  {
+    href: "/admin/moderacao",
+    label: "Moderação",
+    icon: ShieldCheck,
+    children: [
+      { href: "/admin/moderacao", label: "Denúncias", icon: ShieldCheck },
+      { href: "/admin/moderacao/verificacoes", label: "Verificações", icon: UserPlus },
+    ],
+  },
   {
     href: "/admin/relatorios",
     label: "Relatórios",
