@@ -1,0 +1,17 @@
+{
+  "pdf_options": {
+    "format": "A4",
+    "margin": {
+      "top": "20mm",
+      "right": "18mm",
+      "bottom": "20mm",
+      "left": "18mm"
+    },
+    "printBackground": true,
+    "displayHeaderFooter": true,
+    "headerTemplate": "<div style='font-size:8px;width:100%;text-align:right;padding-right:18mm;color:#999;'>I'm Here · Memorial Descritivo</div>",
+    "footerTemplate": "<div style='font-size:8px;width:100%;text-align:center;color:#999;'>Página <span class='pageNumber'></span> de <span class='totalPages'></span></div>"
+  },
+  "stylesheet_encoding": "utf-8",
+  "css": "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 100%; } h1 { color: #ef2c39; border-bottom: 3px solid #ef2c39; padding-bottom: 10px; page-break-after: avoid; } h2 { color: #1a1a1a; border-bottom: 2px solid #e5e5e5; padding-bottom: 6px; margin-top: 32px; page-break-after: avoid; } h3 { color: #2a2a2a; margin-top: 22px; page-break-after: avoid; } h4 { color: #444; } p, li { font-size: 11pt; } code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 9.5pt; color: #ef2c39; } pre { background: #f8f8f8; padding: 12px; border-radius: 6px; border-left: 4px solid #ef2c39; overflow-x: auto; font-size: 9pt; } table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 10pt; } th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; } th { background: #fafafa; font-weight: 600; color: #444; } tr:nth-child(even) td { background: #fcfcfc; } blockquote { border-left: 4px solid #ef2c39; padding: 8px 16px; color: #555; background: #fef5f5; margin: 16px 0; border-radius: 0 4px 4px 0; } strong { color: #1a1a1a; } a { color: #ef2c39; text-decoration: none; }"
+}
