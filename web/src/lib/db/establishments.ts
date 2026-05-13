@@ -125,6 +125,28 @@ export async function listMoments(establishmentId: string): Promise<Moment[]> {
   return data ?? [];
 }
 
+export interface ScheduledMoment {
+  id: string;
+  establishment_id: string;
+  image_url: string;
+  caption: string | null;
+  scheduled_for: string;
+  status: "pending" | "posted" | "cancelled";
+  created_at: string;
+}
+
+export async function listScheduledMoments(establishmentId: string): Promise<ScheduledMoment[]> {
+  if (isMockMode()) return [];
+  const sb = await supabaseServer();
+  const { data } = await sb
+    .from("scheduled_moments")
+    .select("id, establishment_id, image_url, caption, scheduled_for, status, created_at")
+    .eq("establishment_id", establishmentId)
+    .eq("status", "pending")
+    .order("scheduled_for", { ascending: true });
+  return (data ?? []) as ScheduledMoment[];
+}
+
 export async function listPresentUsers(establishmentId: string): Promise<Profile[]> {
   if (isMockMode()) {
     const ids = presentByEstablishment[establishmentId] ?? [];

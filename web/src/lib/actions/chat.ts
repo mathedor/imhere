@@ -4,11 +4,16 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
 import { moderate } from "@/lib/moderation";
+import { checkRateLimit, getRateLimitKey, LIMITS } from "@/lib/rate-limit";
 
 export async function sendMessageAction(formData: FormData) {
   const conversationId = String(formData.get("conversationId") ?? "");
   const body = String(formData.get("body") ?? "").trim();
   if (!conversationId || !body) return;
+
+  const rlKey = await getRateLimitKey("sendMessage");
+  const rl = checkRateLimit(rlKey, LIMITS.sendMessage.limit, LIMITS.sendMessage.windowMs);
+  if (!rl.ok) return;
 
   // Moderação client-side já feita; revalidamos server-side por segurança
   const mod = moderate(body);

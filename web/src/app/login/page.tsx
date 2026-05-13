@@ -62,7 +62,7 @@ function LoginForm() {
             <label className="flex items-center gap-2 text-text-soft">
               <input type="checkbox" className="accent-brand" /> Lembrar de mim
             </label>
-            <Link href="#" className="text-brand hover:underline">
+            <Link href="/esqueci-senha" className="text-brand hover:underline">
               Esqueci a senha
             </Link>
           </div>

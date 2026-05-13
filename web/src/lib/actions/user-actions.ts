@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
+import { checkRateLimit, getRateLimitKey, LIMITS } from "@/lib/rate-limit";
 
 export async function doCheckInAction(formData: FormData) {
   const estabId = String(formData.get("estabId") ?? "");
@@ -12,6 +13,11 @@ export async function doCheckInAction(formData: FormData) {
     revalidatePath(`/app/estabelecimento/${estabId}`);
     return;
   }
+
+  const rlKey = await getRateLimitKey("checkin");
+  const rl = checkRateLimit(rlKey, LIMITS.checkin.limit, LIMITS.checkin.windowMs);
+  if (!rl.ok) return;
+
   const sb = await supabaseServer();
   await sb.rpc("do_checkin", { estab_id: estabId });
 
@@ -185,6 +191,11 @@ export async function createContactRequestAction(formData: FormData) {
     revalidatePath(`/app/usuario/${toProfileId}`);
     return;
   }
+
+  const rlKey = await getRateLimitKey("contactRequest");
+  const rl = checkRateLimit(rlKey, LIMITS.contactRequest.limit, LIMITS.contactRequest.windowMs);
+  if (!rl.ok) return;
+
   const sb = await supabaseServer();
   const {
     data: { user },

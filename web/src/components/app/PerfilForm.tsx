@@ -215,7 +215,7 @@ export function PerfilForm({ initial }: { initial: InitialProfile }) {
 
       <Link
         href="/app/perfil/verificacao"
-        className="mb-6 flex items-center gap-3 rounded-2xl border border-brand/30 bg-gradient-to-r from-brand/10 via-warn/5 to-brand/10 p-4 transition-all hover:border-brand"
+        className="mb-3 flex items-center gap-3 rounded-2xl border border-brand/30 bg-gradient-to-r from-brand/10 via-warn/5 to-brand/10 p-4 transition-all hover:border-brand"
       >
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-strong to-brand text-white shadow-glow">
           <Sparkles className="size-5" />
@@ -227,6 +227,22 @@ export function PerfilForm({ initial }: { initial: InitialProfile }) {
           </p>
         </div>
         <span className="text-xs font-bold text-brand">Verificar →</span>
+      </Link>
+
+      <Link
+        href="/app/perfil/quiz"
+        className="mb-6 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-all hover:border-brand/60"
+      >
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
+          <Sparkles className="size-5" />
+        </div>
+        <div className="flex-1 leading-tight">
+          <p className="text-sm font-bold text-text">Quiz de afinidade</p>
+          <p className="text-[0.7rem] text-text-soft">
+            5 perguntas pra calcular match · 1 minuto
+          </p>
+        </div>
+        <span className="text-xs font-bold text-brand">Responder →</span>
       </Link>
 
       <div className="sticky bottom-24 z-10 flex justify-end md:bottom-6">

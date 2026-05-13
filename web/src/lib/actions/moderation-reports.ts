@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/supabase/config";
+import { checkRateLimit, getRateLimitKey, LIMITS } from "@/lib/rate-limit";
 
 type ReportCategory = "harassment" | "spam" | "fake" | "offensive" | "safety" | "other";
 
@@ -20,6 +21,11 @@ export async function createModerationReportAction(input: ReportInput): Promise<
   error?: string;
 }> {
   if (isMockMode()) return { ok: true };
+
+  const rlKey = await getRateLimitKey("report");
+  const rl = checkRateLimit(rlKey, LIMITS.report.limit, LIMITS.report.windowMs);
+  if (!rl.ok) return { ok: false, error: "Muitas denúncias num curto período. Aguarde alguns minutos." };
+
   try {
     const sb = await supabaseServer();
     const {

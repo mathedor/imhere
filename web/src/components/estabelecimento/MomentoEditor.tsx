@@ -1,11 +1,16 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, Clock, Eye, Plus, Send, Trash2, X } from "lucide-react";
+import { CalendarClock, Camera, Clock, Eye, Plus, Send, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { PhotoUpload } from "@/components/PhotoUpload";
-import { deleteMomentAction, postMomentAction } from "@/lib/actions/establishment-owner";
+import {
+  cancelScheduledMomentAction,
+  deleteMomentAction,
+  postMomentAction,
+  scheduleMomentAction,
+} from "@/lib/actions/establishment-owner";
 
 export interface MomentItem {
   id: string;
@@ -16,8 +21,16 @@ export interface MomentItem {
   expires_at: string;
 }
 
+export interface ScheduledItem {
+  id: string;
+  image_url: string;
+  caption: string | null;
+  scheduled_for: string;
+}
+
 interface Props {
   moments: MomentItem[];
+  scheduled?: ScheduledItem[];
 }
 
 function timeUntilExpiry(expiresAt: string): { h: number; m: number } {
@@ -31,7 +44,17 @@ function fmtPostedAt(iso: string): string {
   return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function MomentoEditor({ moments }: Props) {
+function fmtScheduled(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function MomentoEditor({ moments, scheduled = [] }: Props) {
   const [showNew, setShowNew] = useState(false);
 
   return (
@@ -129,6 +152,43 @@ export function MomentoEditor({ moments }: Props) {
 
       <AnimatePresence>{showNew && <NewPostDrawer onClose={() => setShowNew(false)} />}</AnimatePresence>
 
+      {scheduled.length > 0 && (
+        <section className="mt-8 rounded-2xl border border-border bg-surface p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <CalendarClock className="size-4 text-brand" />
+            <h2 className="text-sm font-bold text-text">Agendados ({scheduled.length})</h2>
+          </div>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {scheduled.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/40 p-3"
+              >
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-lg">
+                  <Image src={s.image_url} alt="" fill sizes="56px" className="object-cover" />
+                </div>
+                <div className="flex-1 leading-tight">
+                  <p className="text-xs font-bold text-text">{fmtScheduled(s.scheduled_for)}</p>
+                  {s.caption && (
+                    <p className="mt-0.5 line-clamp-2 text-[0.7rem] text-text-soft">{s.caption}</p>
+                  )}
+                </div>
+                <form action={cancelScheduledMomentAction}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <button
+                    type="submit"
+                    className="grid size-8 place-items-center rounded-full text-muted hover:bg-bg/40 hover:text-danger"
+                    title="Cancelar"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="mt-8 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-bold text-text">Como funciona</h2>
         <ul className="mt-3 grid grid-cols-1 gap-3 text-xs text-text-soft md:grid-cols-3">
@@ -156,10 +216,32 @@ export function MomentoEditor({ moments }: Props) {
   );
 }
 
+function defaultScheduledLocal(): string {
+  const d = new Date(Date.now() + 60 * 60 * 1000);
+  d.setSeconds(0, 0);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function NewPostDrawer({ onClose }: { onClose: () => void }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"now" | "schedule">("now");
+  const [scheduledFor, setScheduledFor] = useState(defaultScheduledLocal());
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSchedule(formData: FormData) {
+    setError(null);
+    setLoading(true);
+    const res = await scheduleMomentAction(formData);
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error ?? "Erro ao agendar");
+      return;
+    }
+    onClose();
+  }
 
   return (
     <motion.div
@@ -178,22 +260,54 @@ function NewPostDrawer({ onClose }: { onClose: () => void }) {
         <header className="flex items-center justify-between border-b border-border p-4">
           <div>
             <h3 className="text-base font-black text-text">Novo No Momento</h3>
-            <p className="text-xs text-text-soft">Foto + legenda · expira em 4h</p>
+            <p className="text-xs text-text-soft">
+              {mode === "now" ? "Foto + legenda · expira em 4h" : "Será publicado automaticamente"}
+            </p>
           </div>
           <button onClick={onClose} className="grid size-9 place-items-center rounded-full text-muted hover:text-text">
             <X className="size-4" />
           </button>
         </header>
 
+        <div className="border-b border-border px-4 pt-4">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+            <button
+              type="button"
+              onClick={() => setMode("now")}
+              className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                mode === "now" ? "bg-brand text-white shadow" : "text-text-soft"
+              }`}
+            >
+              <Camera className="mr-1 inline size-3.5" />
+              Postar agora
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("schedule")}
+              className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                mode === "schedule" ? "bg-brand text-white shadow" : "text-text-soft"
+              }`}
+            >
+              <CalendarClock className="mr-1 inline size-3.5" />
+              Agendar
+            </button>
+          </div>
+        </div>
+
         <form
-          action={postMomentAction}
+          action={mode === "now" ? postMomentAction : handleSchedule}
           onSubmit={() => {
-            setLoading(true);
-            setTimeout(onClose, 300);
+            if (mode === "now") {
+              setLoading(true);
+              setTimeout(onClose, 300);
+            }
           }}
           className="flex flex-col gap-4 p-4"
         >
           {imageUrl && <input type="hidden" name="imageUrl" value={imageUrl} />}
+          {mode === "schedule" && (
+            <input type="hidden" name="scheduledFor" value={new Date(scheduledFor).toISOString()} />
+          )}
 
           <PhotoUpload
             bucket="moments"
@@ -213,6 +327,25 @@ function NewPostDrawer({ onClose }: { onClose: () => void }) {
           />
           <p className="-mt-3 text-right text-[0.65rem] text-muted">{caption.length}/140</p>
 
+          {mode === "schedule" && (
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-text-soft">Publicar em</span>
+              <input
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={(e) => setScheduledFor(e.target.value)}
+                className="rounded-xl border border-border bg-surface-2 p-3 text-sm outline-none focus:border-brand/60"
+              />
+              <span className="text-[0.65rem] text-muted">Será publicado automaticamente · até 30 dias</span>
+            </label>
+          )}
+
+          {error && (
+            <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={!imageUrl || loading}
@@ -222,8 +355,8 @@ function NewPostDrawer({ onClose }: { onClose: () => void }) {
                 : "bg-surface-2 text-muted"
             }`}
           >
-            {loading ? <Send className="size-4 animate-pulse" /> : <Camera className="size-4" />}
-            {loading ? "Publicando..." : "Publicar"}
+            {loading ? <Send className="size-4 animate-pulse" /> : mode === "now" ? <Camera className="size-4" /> : <CalendarClock className="size-4" />}
+            {loading ? "Salvando..." : mode === "now" ? "Publicar" : "Agendar"}
           </button>
         </form>
       </motion.div>

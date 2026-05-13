@@ -1,7 +1,7 @@
 import { Clock, TrendingUp } from "lucide-react";
-import { MomentoEditor, type MomentItem } from "@/components/estabelecimento/MomentoEditor";
+import { MomentoEditor, type MomentItem, type ScheduledItem } from "@/components/estabelecimento/MomentoEditor";
 import { getCheckinsHourly } from "@/lib/db/admin-indices";
-import { listMoments } from "@/lib/db/establishments";
+import { listMoments, listScheduledMoments } from "@/lib/db/establishments";
 import { getMyEstablishmentContext } from "@/lib/db/my-establishment";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,15 @@ export default async function MomentoPage() {
         views_count: m.views_count,
         posted_at: m.posted_at,
         expires_at: m.expires_at,
+      }))
+    : [];
+
+  const scheduled: ScheduledItem[] = ctx.establishment
+    ? (await listScheduledMoments(ctx.establishment.id)).map((s) => ({
+        id: s.id,
+        image_url: s.image_url,
+        caption: s.caption,
+        scheduled_for: s.scheduled_for,
       }))
     : [];
 
@@ -74,7 +83,7 @@ export default async function MomentoPage() {
         </div>
       </section>
 
-      <MomentoEditor moments={moments} />
+      <MomentoEditor moments={moments} scheduled={scheduled} />
     </>
   );
 }

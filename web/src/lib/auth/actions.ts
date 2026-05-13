@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isMockMode } from "@/lib/supabase/config";
+import { checkRateLimit, getRateLimitKey, LIMITS } from "@/lib/rate-limit";
 import type { EstablishmentType, UserRole } from "@/lib/db/types";
 
 const ROLE_REDIRECTS: Record<UserRole, string> = {
@@ -31,6 +32,13 @@ export async function signInAction(formData: FormData) {
     redirect("/app");
   }
 
+  // Rate limit por IP (ainda não logado)
+  const rlKey = await getRateLimitKey(`signIn:${email}`);
+  const rl = checkRateLimit(rlKey, LIMITS.signIn.limit, LIMITS.signIn.windowMs);
+  if (!rl.ok) {
+    redirect(`/login?error=${encodeURIComponent(`Muitas tentativas. Aguarde ${Math.ceil(rl.resetIn / 1000)}s.`)}`);
+  }
+
   const sb = await supabaseServer();
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
@@ -54,6 +62,12 @@ export async function signUpUserAction(formData: FormData) {
   const whatsapp = String(formData.get("whatsapp") ?? "");
 
   if (isMockMode()) redirect("/app");
+
+  const rlKey = await getRateLimitKey(`signUp`);
+  const rl = checkRateLimit(rlKey, LIMITS.signUp.limit, LIMITS.signUp.windowMs);
+  if (!rl.ok) {
+    redirect(`/cadastro?error=${encodeURIComponent("Muitas tentativas. Aguarde alguns minutos.")}`);
+  }
 
   // Cria via admin + auto-confirm (sem confirmacao por email)
   const admin = supabaseAdmin();
@@ -154,6 +168,42 @@ export async function signUpEstablishmentAction(formData: FormData) {
 
 // alias legado (caso algum lugar ainda use)
 export const signUpAction = signUpUserAction;
+
+/** Envia email de reset de senha. Falha silenciosa pra não revelar se o email existe (anti-enum). */
+export async function requestPasswordResetAction(formData: FormData): Promise<{ ok: boolean }> {
+  if (isMockMode()) return { ok: true };
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) return { ok: false };
+
+  const rlKey = await getRateLimitKey(`reset:${email}`);
+  const rl = checkRateLimit(rlKey, LIMITS.resetPassword.limit, LIMITS.resetPassword.windowMs);
+  if (!rl.ok) return { ok: true }; // silently noop pra anti-enum
+
+  try {
+    const sb = await supabaseServer();
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/redefinir-senha`;
+    await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  } catch (err) {
+    console.error("[resetPassword]", err);
+  }
+  // Sempre retorna ok=true (anti-enumeration)
+  return { ok: true };
+}
+
+/** Define nova senha — chamado da página /redefinir-senha após user clicar o link do email */
+export async function updatePasswordAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  if (isMockMode()) return { ok: true };
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 8) return { ok: false, error: "Senha precisa ter no mínimo 8 caracteres" };
+  try {
+    const sb = await supabaseServer();
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
 
 export async function signOutAction() {
   if (isMockMode()) redirect("/");

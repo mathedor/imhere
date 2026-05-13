@@ -115,6 +115,50 @@ export async function deleteMomentAction(formData: FormData) {
   revalidatePath("/estabelecimento/momento");
 }
 
+/** Agenda um momento pra publicar mais tarde */
+export async function scheduleMomentAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  const imageUrl = String(formData.get("imageUrl") ?? "");
+  const caption = String(formData.get("caption") ?? "") || null;
+  const scheduledFor = String(formData.get("scheduledFor") ?? "");
+
+  if (!imageUrl || !scheduledFor) return { ok: false, error: "Foto e data são obrigatórios" };
+
+  const when = new Date(scheduledFor);
+  if (Number.isNaN(when.getTime())) return { ok: false, error: "Data inválida" };
+  if (when.getTime() <= Date.now()) return { ok: false, error: "Data precisa ser no futuro" };
+  if (when.getTime() > Date.now() + 30 * 86400_000) return { ok: false, error: "No máximo 30 dias no futuro" };
+
+  if (isMockMode()) return { ok: true };
+
+  const estabId = await getMyEstablishmentId();
+  if (!estabId) return { ok: false, error: "Sem estabelecimento" };
+
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+
+  const { error } = await sb.from("scheduled_moments").insert({
+    establishment_id: estabId,
+    image_url: imageUrl,
+    caption,
+    scheduled_for: when.toISOString(),
+    created_by: user?.id ?? null,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/estabelecimento/momento");
+  return { ok: true };
+}
+
+export async function cancelScheduledMomentAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id || isMockMode()) return;
+  const sb = await supabaseServer();
+  await sb.from("scheduled_moments").update({ status: "cancelled" }).eq("id", id).eq("status", "pending");
+  revalidatePath("/estabelecimento/momento");
+}
+
 export async function sendCourtesyAction(formData: FormData) {
   const toProfileId = String(formData.get("toProfileId") ?? "");
   const kind = String(formData.get("kind") ?? "");
