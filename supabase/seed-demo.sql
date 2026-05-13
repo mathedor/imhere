@@ -224,8 +224,8 @@ begin
   for req in select * from public.contact_requests where status = 'accepted' limit 20
   loop
     -- Cria conversation
-    insert into public.conversations (establishment_id, contact_request_id, participants, created_at)
-    values (req.establishment_id, req.id, array[req.from_profile_id, req.to_profile_id], req.responded_at)
+    insert into public.conversations (establishment_id, contact_request_id, participants, started_at, last_message_at)
+    values (req.establishment_id, req.id, array[req.from_profile_id, req.to_profile_id], req.responded_at, req.responded_at)
     on conflict do nothing
     returning id into conv_id;
 
