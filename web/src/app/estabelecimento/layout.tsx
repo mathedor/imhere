@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { EstabBottomNav } from "@/components/estabelecimento/EstabBottomNav";
 import { Logo } from "@/components/Logo";
+import { HelpTrigger } from "@/components/onboarding/HelpTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
 
@@ -97,6 +98,10 @@ function Sidebar() {
         })}
       </nav>
 
+      <div className="mt-2">
+        <HelpTrigger role="estabelecimento" variant="sidebar" />
+      </div>
+
       <form action={signOutAction} className="mt-2">
         <button
           type="submit"
@@ -142,6 +147,7 @@ export default function EstabLayout({ children }: { children: React.ReactNode })
               <Bell className="size-4" />
               <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-brand live-dot" />
             </Link>
+            <HelpTrigger role="estabelecimento" variant="header" />
             <ThemeToggle compact />
             <form action={signOutAction}>
               <button

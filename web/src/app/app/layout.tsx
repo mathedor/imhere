@@ -2,9 +2,9 @@ import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { LowCreditBanner } from "@/components/CreditConfirmDialog";
 import { NpsPrompt } from "@/components/app/NpsPrompt";
-import { OnboardingTour } from "@/components/app/OnboardingTour";
 import { PhotoNudgeBanner } from "@/components/app/PhotoNudgeBanner";
 import { PWAInstallPrompt } from "@/components/app/PWAInstallPrompt";
+import { RoleOnboarding } from "@/components/onboarding/RoleOnboarding";
 import { RealtimeRefresh } from "@/components/RealtimeRefresh";
 import { SideNav } from "@/components/SideNav";
 import { getMyBalance } from "@/lib/actions/credits";
@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <main className="flex-1 pb-32 md:pb-8 md:pt-6">{children}</main>
       </div>
       <BottomNav unreadChat={counts.chat} />
-      <OnboardingTour show={needsOnboarding} />
+      <RoleOnboarding role="user" autoOpenIfUnseen={needsOnboarding} />
       <NpsPrompt />
       <PWAInstallPrompt />
     </div>

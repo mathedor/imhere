@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, HelpCircle, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { CreditBadge } from "./CreditBadge";
 import { Logo } from "./Logo";
+import { RoleOnboarding } from "./onboarding/RoleOnboarding";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
 
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function AppHeader({ unreadNotif = 0, credits = 0 }: Props = {}) {
+  const [tourOpen, setTourOpen] = useState(false);
   return (
     <header className="md:hidden sticky top-0 z-20 flex items-center justify-between gap-2 px-5 pb-4 pt-[max(env(safe-area-inset-top),14px)] bg-gradient-to-b from-bg via-bg/95 to-transparent backdrop-blur-sm">
       <Link href="/app">
@@ -21,6 +24,19 @@ export function AppHeader({ unreadNotif = 0, credits = 0 }: Props = {}) {
       </Link>
       <div className="flex items-center gap-1.5">
         <CreditBadge balance={credits} compact />
+        <motion.button
+          type="button"
+          onClick={() => setTourOpen(true)}
+          whileTap={{ scale: 0.88 }}
+          whileHover={{ y: -2 }}
+          transition={{ type: "spring", stiffness: 420, damping: 14 }}
+          className="grid size-9 place-items-center rounded-full border border-border bg-surface text-text transition-colors hover:border-brand/40 hover:text-brand"
+          title="Como funciona"
+          aria-label="Como funciona"
+        >
+          <HelpCircle className="size-4" />
+        </motion.button>
+        <RoleOnboarding role="user" open={tourOpen} onOpenChange={setTourOpen} />
         <ThemeToggle />
         <Link href="/app/notificacoes">
           <motion.div

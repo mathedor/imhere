@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
+import { HelpTrigger } from "@/components/onboarding/HelpTrigger";
+import type { OnboardingRole } from "@/components/onboarding/slides";
 import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
 import { PanelBottomNav, type PanelQuickItem } from "./PanelBottomNav";
@@ -37,6 +39,7 @@ const scopeColors: Record<PanelLayoutProps["scope"], string> = {
 export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, children }: PanelLayoutProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const onboardingRole: OnboardingRole = scope;
 
   const sidebar = (
     <div className="flex h-full flex-col gap-1 p-4">
@@ -101,6 +104,10 @@ export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, child
           );
         })}
       </nav>
+
+      <div className="mt-2">
+        <HelpTrigger role={onboardingRole} variant="sidebar" />
+      </div>
 
       <div className="mt-2 flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
         <div
@@ -170,6 +177,7 @@ export function PanelLayout({ title, subtitle, nav, quickNav, scope, user, child
           <button className="hidden md:grid size-9 place-items-center rounded-xl border border-border text-text-soft hover:text-text">
             <Search className="size-4" />
           </button>
+          <HelpTrigger role={onboardingRole} variant="header" />
           <Link
             href={
               scope === "admin" ? "/admin/notificacoes"

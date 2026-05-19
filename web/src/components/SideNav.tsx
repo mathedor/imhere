@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, Compass, LogOut, MessageCircle, Sparkles, User } from "lucide-react";
+import { Bell, Compass, HelpCircle, LogOut, MessageCircle, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { CreditBadge } from "./CreditBadge";
 import { Logo } from "./Logo";
+import { RoleOnboarding } from "./onboarding/RoleOnboarding";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
@@ -18,6 +20,7 @@ interface SideNavProps {
 
 export function SideNav({ unreadChat = 0, unreadNotif = 0, credits = 0 }: SideNavProps = {}) {
   const pathname = usePathname();
+  const [tourOpen, setTourOpen] = useState(false);
   const items = [
     { href: "/app", label: "Explorar", icon: Compass, desc: "Lugares ao seu redor", badge: 0 },
     { href: "/app/chat", label: "Chat", icon: MessageCircle, desc: "Suas conversas", badge: unreadChat },
@@ -117,6 +120,24 @@ export function SideNav({ unreadChat = 0, unreadNotif = 0, credits = 0 }: SideNa
             )}
           </motion.div>
         </Link>
+
+        <motion.button
+          type="button"
+          onClick={() => setTourOpen(true)}
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ y: -2 }}
+          transition={{ type: "spring", stiffness: 400, damping: 16 }}
+          className="flex items-center gap-3 rounded-2xl border border-dashed border-border bg-surface/60 px-3 py-2.5 text-left transition-colors hover:border-brand/40 hover:bg-surface"
+        >
+          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-brand-strong to-brand text-white">
+            <HelpCircle className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="text-xs font-bold text-text">Como funciona</p>
+            <p className="text-[0.65rem] text-muted">Rever tour rápido</p>
+          </div>
+        </motion.button>
+        <RoleOnboarding role="user" open={tourOpen} onOpenChange={setTourOpen} />
 
         <form action={signOutAction}>
           <motion.button
