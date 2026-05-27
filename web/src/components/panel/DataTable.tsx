@@ -67,7 +67,7 @@ export function DataTable<T extends object>({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="overflow-x-auto scrollbar-hide">
+      <div className="hidden lg:block overflow-x-auto scrollbar-hide">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-2/50">
@@ -142,6 +142,70 @@ export function DataTable<T extends object>({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile: cards */}
+      <div className="lg:hidden divide-y divide-border">
+        {pageData.length === 0 && (
+          <div className="py-12 text-center text-sm text-muted">{emptyText}</div>
+        )}
+        {pageData.map((row) => {
+          const actionCols = columns.filter((c) => {
+            const k = String(c.key).toLowerCase();
+            const l = c.label.toLowerCase();
+            return (
+              k === "actions" ||
+              k === "acoes" ||
+              l === "ações" ||
+              l === "ação" ||
+              l === "acoes" ||
+              l === ""
+            );
+          });
+          const dataCols = columns.filter((c) => !actionCols.includes(c));
+          return (
+            <div key={rowKey(row)} className="p-4">
+              <div
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cn("space-y-1.5", onRowClick && "cursor-pointer")}
+              >
+                {dataCols.map((col) => (
+                  <div
+                    key={String(col.key)}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <span className="shrink-0 pt-0.5 text-[0.6rem] font-bold uppercase tracking-widest text-muted">
+                      {col.label}
+                    </span>
+                    <span
+                      className={cn(
+                        "min-w-0 text-right text-sm text-text",
+                        col.align === "left" && "text-left"
+                      )}
+                    >
+                      {col.render
+                        ? col.render(row)
+                        : String(
+                            (row as Record<string, unknown>)[
+                              String(col.key)
+                            ] ?? "—"
+                          )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {actionCols.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-border pt-3">
+                  {actionCols.map((col) => (
+                    <div key={String(col.key)}>
+                      {col.render ? col.render(row) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {totalPages > 1 && (

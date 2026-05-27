@@ -52,7 +52,7 @@ export default async function AdminMatchAnalysisPage() {
         {rows.length === 0 ? (
           <p className="py-12 text-center text-sm text-text-soft">Sem dados ainda</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-[0.65rem] font-bold uppercase tracking-widest text-muted">
@@ -103,6 +103,58 @@ export default async function AdminMatchAnalysisPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Mobile: cards */}
+        {rows.length > 0 && (
+          <div className="space-y-3 lg:hidden">
+            {rows.map((r) => {
+              const color = GENDER_COLOR[r.gender] ?? "#6b6b75";
+              const label = GENDER_LABEL[r.gender] ?? r.gender;
+              return (
+                <div
+                  key={r.gender}
+                  className="rounded-2xl border border-border bg-surface-2/40 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="size-3 rounded-full"
+                        style={{ background: color }}
+                      />
+                      <span className="font-bold text-text">{label}</span>
+                    </span>
+                    <span className="text-lg font-black" style={{ color }}>
+                      {r.acceptedPct}%
+                    </span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-3">
+                    <div
+                      className="h-full"
+                      style={{
+                        width: `${r.acceptedPct}%`,
+                        background: `linear-gradient(90deg, ${color}, ${color}cc)`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-3 flex justify-between text-xs">
+                    <span className="text-text-soft">
+                      Recebidos:{" "}
+                      <span className="font-semibold text-text">
+                        {r.totalReceived.toLocaleString("pt-BR")}
+                      </span>
+                    </span>
+                    <span className="text-text-soft">
+                      Aceitos:{" "}
+                      <span className="font-semibold text-text">
+                        {r.accepted.toLocaleString("pt-BR")}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
