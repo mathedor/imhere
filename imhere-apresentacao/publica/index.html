@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>I'm Here · Apresentação da Plataforma</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --r:#ef2c39; --r-soft:#ff5a65; --r-deep:#dc1f2b;
+  --pp:#a855f7;
+  --ink:#0a0a0b; --panel:#131316; --panel2:#1c1c20;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.15);
+  --tx:#f5f5f7; --mut:#b8b8c0; --mut2:#6b6b75;
+  --red:#fb7185; --amber:#fbbf24; --grn:#22c55e; --cy:#38bdf8;
+  --sans:'Inter',system-ui,sans-serif; --disp:'Outfit','Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+img{max-width:100%;display:block}
+
+#deck{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+#deck::-webkit-scrollbar{width:0}
+.slide{min-height:100vh;scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:center;padding:64px 88px 72px;overflow:hidden}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(ellipse 90% 80% at 70% 30%,#000 20%,transparent 80%)}
+.glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.22;pointer-events:none}
+.glow.a{width:540px;height:540px;background:var(--r);top:-170px;right:-130px}
+.glow.b{width:420px;height:420px;background:var(--pp);bottom:-180px;left:-140px;opacity:.16}
+
+#bar{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.06);z-index:60}
+#bar>i{display:block;height:100%;width:0;background:var(--r);box-shadow:0 0 18px var(--r);transition:width .3s}
+#hud{position:fixed;top:18px;right:26px;z-index:60;display:flex;align-items:center;gap:14px;font-family:var(--disp);font-size:12px;color:var(--mut)}
+#hud b{color:var(--tx);font-weight:700}
+#hud .k{border:1px solid var(--line2);border-radius:7px;padding:4px 8px;color:var(--mut);cursor:pointer;transition:.2s}
+#hud .k:hover{color:#fff;background:var(--r-deep);border-color:var(--r-deep)}
+#rail{position:fixed;left:22px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:11px}
+#rail a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--mut2);font-size:11px;font-family:var(--disp);font-weight:700;letter-spacing:.02em}
+#rail .d{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--mut2);transition:.25s;flex:none}
+#rail a .t{opacity:0;transform:translateX(-6px);transition:.25s;white-space:nowrap}
+#rail a:hover .t,#rail a.on .t{opacity:1;transform:none}
+#rail a.on{color:var(--r-soft)}
+#rail a.on .d{background:var(--r);border-color:var(--r);box-shadow:0 0 12px var(--r);transform:scale(1.15)}
+
+.kick{font-family:var(--disp);font-weight:800;font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--r-soft);display:flex;align-items:center;gap:12px}
+.kick::before{content:"";width:26px;height:2px;background:var(--r);display:inline-block;border-radius:2px}
+h1.big{font-family:var(--disp);font-weight:900;font-size:clamp(38px,5.4vw,76px);line-height:1.02;letter-spacing:-.025em;margin:18px 0}
+h2.sec{font-family:var(--disp);font-weight:800;font-size:clamp(30px,3.4vw,48px);line-height:1.05;letter-spacing:-.02em;margin:14px 0 10px}
+.lead{font-size:clamp(16px,1.5vw,20px);color:var(--mut);max-width:52ch;line-height:1.55}
+.kid{font-size:17px;line-height:1.6;color:#e8e8ec;max-width:52ch}
+.kid b{color:var(--r-soft);font-weight:700}
+.kid .em{background:linear-gradient(transparent 62%,rgba(239,44,57,.32) 0);padding:0 2px}
+
+#cover,#end{text-align:center;align-items:center}
+.wordmark{font-family:var(--disp);font-weight:900;font-size:clamp(32px,3.8vw,50px);letter-spacing:-.02em}
+.wordmark .pin{display:inline-block;width:.95em;height:.95em;margin-right:10px;vertical-align:-8%;position:relative}
+.wordmark .pin::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--r),var(--r-deep));border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 6px 20px rgba(239,44,57,.5)}
+.wordmark .pin::after{content:"";position:absolute;left:30%;top:22%;width:40%;height:40%;background:#fff;border-radius:50%}
+.wordmark b{color:var(--r)}
+#cover .kick,#end .kick{justify-content:center;margin-top:26px}
+#cover h1 .l,#end h2 .l{color:var(--r-soft)}
+#cover .sub{font-size:clamp(16px,1.6vw,21px);color:var(--mut);max-width:64ch;margin:8px auto 0}
+.meta{position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:space-between;padding:0 88px;font-size:12px;color:var(--mut2);font-family:var(--disp)}
+kbd{border:1px solid var(--line2);border-radius:5px;padding:1px 6px;font-family:var(--disp);font-size:10px}
+.cta{display:inline-block;margin-top:30px;background:linear-gradient(135deg,var(--r),var(--r-deep));color:#fff;font-family:var(--disp);font-weight:800;font-size:17px;padding:16px 34px;border-radius:999px;box-shadow:0 14px 44px -10px rgba(239,44,57,.6)}
+.contact{margin-top:22px;font-size:13px;color:var(--mut)}
+.contact b{color:var(--tx)}
+
+.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.v{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px}
+.v .ic{font-size:30px;margin-bottom:12px}
+.v h3{font-family:var(--disp);font-weight:800;font-size:19px;margin-bottom:8px}
+.v p{font-size:13.5px;color:var(--mut);line-height:1.55}
+.overline{margin-top:30px;font-size:12.5px;color:var(--mut2);font-family:var(--disp)}
+
+.levelintro{position:relative;z-index:2;max-width:1300px;margin:0 auto;width:100%}
+.levelintro .no{font-family:var(--disp);font-weight:900;font-size:clamp(70px,9vw,130px);line-height:1;color:transparent;-webkit-text-stroke:2px var(--r);opacity:.9}
+.levelintro .who{font-family:var(--disp);font-weight:800;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--r-soft)}
+.levelintro h2{font-family:var(--disp);font-weight:900;font-size:clamp(40px,5vw,72px);letter-spacing:-.02em;line-height:1}
+.levelintro .lead{margin-top:18px}
+.idx{display:flex;flex-wrap:wrap;gap:9px;margin-top:30px;max-width:900px}
+.idx span{font-family:var(--disp);font-size:12px;font-weight:700;color:var(--mut);background:var(--panel);border:1px solid var(--line);padding:7px 13px;border-radius:20px}
+.idx span b{color:var(--r-soft);margin-right:6px}
+
+.feat{position:relative;z-index:2;display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:60px;align-items:center;width:100%;max-width:1500px;margin:0 auto}
+.feat .txt .num{font-family:var(--disp);font-weight:800;font-size:15px;color:var(--mut2)}
+.feat .txt h2{font-family:var(--disp);font-weight:800;font-size:clamp(28px,3vw,44px);line-height:1.06;letter-spacing:-.02em;margin:14px 0 16px}
+.feat .txt h2 .hl{color:var(--r-soft)}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.pill{font-family:var(--disp);font-size:12px;font-weight:700;color:var(--tx);background:var(--panel2);border:1px solid var(--line2);border-radius:20px;padding:6px 12px}
+.pill.hot{background:rgba(239,44,57,.14);border-color:rgba(239,44,57,.45);color:var(--r-soft)}
+
+.mockwrap{position:relative}
+.mockwrap::after{content:"";position:absolute;inset:-30px;background:radial-gradient(60% 60% at 50% 40%,rgba(239,44,57,.12),transparent 70%);z-index:-1}
+.browser{background:var(--panel);border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.7)}
+.browser .top{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#0e0e10;border-bottom:1px solid var(--line)}
+.browser .top i{width:11px;height:11px;border-radius:50%;background:#2c2c31;display:inline-block}
+.browser .top .url{margin-left:12px;flex:1;background:#18181c;border:1px solid var(--line);border-radius:7px;padding:5px 12px;font-size:11px;color:var(--mut);font-family:var(--disp)}
+.browser .top .url b{color:var(--r-soft)}
+.browser .body{padding:20px}
+.phone{width:270px;margin:0 auto;background:var(--panel);border:8px solid #1c1c20;border-radius:38px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.8);position:relative}
+.phone .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:20px;background:#1c1c20;border-radius:12px;z-index:5}
+.phone .scr{padding:34px 14px 18px;min-height:500px}
+.phone .bnav{position:absolute;bottom:0;left:0;right:0;background:#0e0e10;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:9px 6px 11px;font-size:8px;color:var(--mut2);font-family:var(--disp);font-weight:700}
+.phone .bnav .bi{display:flex;flex-direction:column;align-items:center;gap:3px}
+.phone .bnav .bi i{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.5}
+.phone .bnav .bi.on{color:var(--r-soft)}
+.phone .bnav .bi.on i{opacity:1;background:var(--r)}
+.app{display:grid;grid-template-columns:152px 1fr;min-height:340px}
+.app .side{background:#0e0e10;border-right:1px solid var(--line);padding:14px 12px}
+.app .side .lg{display:flex;align-items:center;gap:7px;font-family:var(--disp);font-weight:900;font-size:13px;margin-bottom:16px}
+.app .side .lg .m{width:18px;height:18px;background:linear-gradient(135deg,var(--r),var(--r-deep));border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+.app .side .nv{font-size:11.5px;color:var(--mut);padding:7px 9px;border-radius:7px;display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.app .side .nv.on{background:rgba(239,44,57,.13);color:var(--r-soft);font-weight:700}
+.app .side .nv .ic{width:14px;height:14px;border-radius:4px;background:currentColor;opacity:.5}
+.app .main{padding:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.kpi .l{font-size:10.5px;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;font-family:var(--disp)}
+.kpi .v{font-family:var(--disp);font-weight:800;font-size:22px;margin-top:5px;letter-spacing:-.02em}
+.kpi .dl{font-size:11px;margin-top:3px;color:var(--grn);font-weight:600}
+.kpi.hi{background:linear-gradient(160deg,rgba(239,44,57,.16),rgba(239,44,57,.03));border-color:rgba(239,44,57,.35)}
+.kpi.hi .v{color:var(--r-soft)}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card .h{font-family:var(--disp);font-size:12.5px;font-weight:700;color:var(--mut);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .h .tag{font-size:10px;color:var(--r-soft);background:rgba(239,44,57,.12);border-radius:5px;padding:2px 7px;white-space:nowrap}
+.bars{display:flex;align-items:flex-end;gap:9px;height:110px}
+.bars .b{flex:1;background:linear-gradient(180deg,var(--r),rgba(239,44,57,.22));border-radius:5px 5px 0 0;min-height:6px}
+.line-lbls{display:flex;gap:9px;margin-top:8px}
+.line-lbls span{flex:1;text-align:center;font-size:9px;color:var(--mut2);font-family:var(--disp)}
+.rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rows .r{display:grid;grid-template-columns:1.6fr 1fr 1fr .8fr;gap:8px;padding:10px 13px;background:var(--panel2);font-size:11.5px;align-items:center}
+.rows .r.hd{background:#0e0e10;color:var(--mut);font-family:var(--disp);font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.rows .r b{font-weight:600}
+.st{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;justify-self:start}
+.st.ok{background:rgba(34,197,94,.15);color:var(--grn)}
+.st.wa{background:rgba(251,191,36,.15);color:var(--amber)}
+.st.no{background:rgba(251,113,133,.15);color:var(--red)}
+.st.hot{background:rgba(239,44,57,.16);color:var(--r-soft)}
+.st.cy{background:rgba(56,189,248,.15);color:var(--cy)}
+.list{display:flex;flex-direction:column;gap:7px}
+.li{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.li .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(140deg,#3a3a42,#232328);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;font-family:var(--disp);flex:none;position:relative}
+.li .av.hot{background:linear-gradient(140deg,var(--r),var(--r-deep))}
+.li .av .dot{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;border:2px solid var(--panel2)}
+.li .g{flex:1;min-width:0}
+.li .g b{display:block;font-weight:600}
+.li .g small{color:var(--mut);font-size:10px}
+/* anel de stories animado */
+@keyframes spin{to{transform:rotate(360deg)}}
+.storyring{width:52px;height:52px;border-radius:50%;position:relative;flex:none;display:flex;align-items:center;justify-content:center}
+.storyring::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--r),var(--pp),var(--amber),var(--r));animation:spin 3s linear infinite}
+.storyring .in{width:44px;height:44px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;z-index:2;border:3px solid var(--panel)}
+.livepulse{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--r-soft);font-family:var(--disp)}
+.livepulse::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--r);box-shadow:0 0 0 0 rgba(239,44,57,.6);animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(239,44,57,0)}100%{box-shadow:0 0 0 0 rgba(239,44,57,0)}}
+.chatmsg{background:var(--panel2);border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:9px 11px;font-size:11px;max-width:86%;margin-bottom:6px}
+.chatmsg.me{background:rgba(239,44,57,.14);border-color:rgba(239,44,57,.32);border-radius:12px 12px 3px 12px;margin-left:auto}
+.locked{position:relative;border-radius:12px;overflow:hidden}
+.locked .blur{filter:blur(5px);opacity:.6}
+.locked .lock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(10,10,11,.45)}
+.locked .lock .ic{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--r),var(--r-deep));display:flex;align-items:center;justify-content:center;font-size:16px}
+.mapmk{position:relative;height:150px;border-radius:12px;background:linear-gradient(160deg,#1d1420,#101014);overflow:hidden}
+.mapmk::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
+.mapmk .pin{position:absolute;width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff}
+.big-red{background:linear-gradient(120deg,#7f1d1d,var(--r-deep));border-radius:16px;padding:16px;margin-bottom:10px}
+.big-red small{color:rgba(255,255,255,.78);font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;font-weight:800;font-family:var(--disp)}
+.big-red b{display:block;font-family:var(--disp);font-size:26px;font-weight:900;margin-top:3px}
+.kan{display:flex;gap:7px}
+.kan>div{flex:1;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:10px;padding:8px}
+.kan h6{margin:0 0 7px;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-family:var(--disp)}
+.kan .c{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:7px;font-size:9.5px;margin-bottom:5px}
+.kan .c small{color:var(--mut);display:block;font-size:8.5px}
+
+.revgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:30px}
+.rev{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.rev .ic{font-size:22px}
+.rev h4{font-family:var(--disp);font-weight:800;font-size:14.5px;margin:8px 0 4px}
+.rev p{font-size:11.5px;color:var(--mut);line-height:1.5}
+.rev b{color:var(--r-soft)}
+
+@media (max-width:980px){
+  .slide{padding:56px 26px 64px}
+  #rail{display:none}
+  .feat{grid-template-columns:1fr;gap:30px}
+  .feat .mockwrap{order:-1}
+  .vg{grid-template-columns:1fr}
+  .revgrid{grid-template-columns:1fr 1fr}
+  .meta{padding:0 26px}
+  .phone{width:240px}.phone .scr{min-height:440px}
+  .app{grid-template-columns:1fr}.app .side{display:none}
+}
+@media (max-width:560px){.revgrid{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="bar"><i></i></div>
+<div id="hud"><span><b id="cur">01</b> / <span id="tot">00</span></span><span class="k" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()">⛶ F</span></div>
+<nav id="rail"></nav>
+<main id="deck"></main>
+
+<script>
+const SHOW_ADMIN = false;
+
+const LEVELS = [
+  {id:'intro', label:'Início'},
+  {id:'user',  label:'Usuário'},
+  {id:'estab', label:'Estabelecimento'},
+  {id:'com',   label:'Comercial'},
+  ...(SHOW_ADMIN?[{id:'admin', label:'Administração'}]:[]),
+  {id:'fim',   label:'Fim'},
+];
+
+const appShell = (items, active, main, base='') => `
+<div class="browser"><div class="top"><i></i><i></i><i></i><div class="url">imhere.app${base}/<b>${active.toLowerCase().replace(/\\s|&/g,'-')}</b></div></div>
+<div class="app">
+  <div class="side">
+    <div class="lg"><span class="m"></span>&nbsp; I'm Here</div>
+    ${items.map(n=>`<div class="nv ${n===active?'on':''}"><span class="ic"></span>${n}</div>`).join('')}
+  </div>
+  <div class="main">${main}</div>
+</div></div>`;
+
+const ESTAB_NAV = ['Dashboard','Pessoas agora','No Momento','Cortesias','Premium da Casa','Perfil','Relatórios'];
+const COM_NAV = ['Pipeline','Clientes','Estabelecimentos','Comissões','Relatórios'];
+const ADMIN_NAV = ['Dashboard','Usuários','Estabelecimentos','Moderação','Planos','Vendas','Relatórios'];
+
+const phone = (scr, activeTab=0) => `<div class="phone"><div class="notch"></div><div class="scr" style="padding-bottom:66px">${scr}</div>
+  <div class="bnav">
+    ${['Agora','Chat','Cortesias','Perfil'].map((t,i)=>`<span class="bi ${i===activeTab?'on':''}"><i></i>${t}</span>`).join('')}
+  </div></div>`;
+
+const SLIDES = [];
+const S = (o)=>SLIDES.push(o);
+
+/* ========================= CAPA ========================= */
+S({type:'cover'});
+S({type:'value'});
+S({type:'levelmap'});
+
+/* ========================= 01 USUÁRIO ========================= */
+S({type:'intro', level:'user', no:'01', who:'A experiência de quem sai', title:'Usuário',
+  desc:'A pergunta de toda sexta-feira — "onde tá bom hoje?" — finalmente tem resposta ao vivo. O usuário vê quantas pessoas estão em cada lugar, faz check-in quando chega e pode conhecer quem está no mesmo rolê. A cidade vira um mapa social.',
+  idx:['Descobrir agora','Check-in & status','Quem tá no local','Chat no mesmo rolê','No Momento (stories)','Cortesias','Planos & créditos','Quem visitou seu perfil']});
+
+S({level:'user', n:'Descobrir agora', title:['O mapa da noite, ','ao vivo'],
+  kid:'A home mostra os lugares por perto com o número que importa: <b>quantas pessoas estão lá AGORA</b>. Busca, geolocalização e ordenação por movimento — <span class="em">acabou o "será que tá bom?"</span>.',
+  pills:['Contagem de presentes ao vivo','Geolocalização + busca','Ordena por movimento','Borda animada = tem stories'],
+  mock: phone(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-family:var(--disp);font-weight:900;font-size:15px">📍 Perto de você</div>
+      <span class="livepulse">AO VIVO</span>
+    </div>
+    <div class="list">
+      <div class="li"><span class="storyring"><span class="in">🍺</span></span><div class="g"><b>Bar do Alto</b><small>rooftop · 400m</small></div><span class="st hot">🔥 47 aqui</span></div>
+      <div class="li"><span class="storyring"><span class="in">🎶</span></span><div class="g"><b>Club Vega</b><small>balada · 1,2km</small></div><span class="st hot">🔥 132 aqui</span></div>
+      <div class="li"><div class="av">🍕</div><div class="g"><b>Trattoria Roma</b><small>restaurante · 650m</small></div><span class="st ok">18 aqui</span></div>
+      <div class="li"><div class="av">🍸</div><div class="g"><b>Mirante Lounge</b><small>bar · 2km</small></div><span class="st ok">9 aqui</span></div>
+    </div>`)});
+
+S({level:'user', n:'Check-in & status', title:['Cheguei. ','E escolho como apareço'],
+  kid:'Chegou no lugar, aperta <b>“I\\u2019m Here”</b> — e decide a vibe: <b>Aberto a conversa</b>, <b>Só observando</b> ou <b>Invisível</b>. O check-in expira sozinho depois de umas horas, então a lista mostra <span class="em">quem está lá de verdade</span>.',
+  pills:['Check-in em 1 toque','3 modos de visibilidade','Expira automático (TTL)','Privacidade em primeiro lugar'],
+  mock: phone(`
+    <div style="text-align:center;margin:14px 0 16px">
+      <div style="width:120px;height:120px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,var(--r),var(--r-deep));display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:900;font-size:19px;box-shadow:0 0 0 12px rgba(239,44,57,.12),0 0 0 24px rgba(239,44,57,.05)">I'M<br/>HERE</div>
+      <div style="font-size:11px;color:var(--mut);margin-top:12px">Bar do Alto · check-in ativo</div>
+    </div>
+    <div class="list">
+      <div class="li" style="border-color:rgba(34,197,94,.4)"><div class="av" style="background:var(--grn)">💬</div><div class="g"><b>Aberto a conversa</b><small>apareço e posso receber contato</small></div><span class="st ok">ativo</span></div>
+      <div class="li"><div class="av">👀</div><div class="g"><b>Só observando</b><small>apareço mas sinalizo distância</small></div></div>
+      <div class="li"><div class="av">🕶️</div><div class="g"><b>Invisível</b><small>não apareço na lista</small></div></div>
+    </div>`)});
+
+S({level:'user', n:'Quem tá no local', title:['A lista de presença ','do rolê'],
+  kid:'Dentro do estabelecimento, o app mostra <b>quem mais está lá</b> — foto, nome e status. Curtiu alguém? O perfil completo e o contato são <span class="em">recursos premium</span>, e é aí que a plataforma fatura.',
+  pills:['Lista só de quem tá lá','Foto + nome no free','Perfil 360 é premium','Status respeitado sempre'],
+  mock: phone(`
+    <div style="font-family:var(--disp);font-weight:900;font-size:14px;margin-bottom:4px">🍺 Bar do Alto</div>
+    <div class="livepulse" style="margin-bottom:10px">47 PESSOAS AGORA</div>
+    <div class="list">
+      <div class="li"><div class="av hot">MA<span class="dot" style="background:var(--grn)"></span></div><div class="g"><b>Mariana, 27</b><small>aberta a conversa</small></div><span class="st hot">ver perfil</span></div>
+      <div class="li"><div class="av hot">JU<span class="dot" style="background:var(--grn)"></span></div><div class="g"><b>Julia, 25</b><small>aberta a conversa</small></div><span class="st hot">ver perfil</span></div>
+      <div class="li"><div class="av">PE<span class="dot" style="background:var(--amber)"></span></div><div class="g"><b>Pedro, 30</b><small>só observando</small></div></div>
+      <div class="li"><div class="av">RA<span class="dot" style="background:var(--grn)"></span></div><div class="g"><b>Rafa, 28</b><small>aberto a conversa</small></div><span class="st hot">ver perfil</span></div>
+    </div>`, 0)});
+
+S({level:'user', n:'Chat no mesmo rolê', title:['Só conversa quem tá ','no mesmo lugar'],
+  kid:'A regra de ouro: <b>chat só entre pessoas com check-in no mesmo estabelecimento</b> — validado no servidor. Pedido de contato com aceite, <b>moderação automática</b> antes da mensagem salvar, e denúncia a um toque. <span class="em">Paquera com contexto e com regra</span>.',
+  pills:['Mesmo local = pode chamar','Aceite ou recusa do contato','Moderação antes de salvar','Foto/áudio no chat (premium)'],
+  mock: phone(`
+    <div class="li" style="margin-bottom:10px"><div class="av hot">MA</div><div class="g"><b>Mariana</b><small>vocês dois no Bar do Alto 📍</small></div><span class="st ok">aceitou ✓</span></div>
+    <div class="chatmsg">Oi! Vi que você também curtiu a banda 🎶</div>
+    <div class="chatmsg me">Demais! O rooftop tá lotado hein</div>
+    <div class="chatmsg">Bora pegar um drink no bar de cima?</div>
+    <div class="chatmsg me">Bora! Camisa preta, te acho lá 😄</div>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <div style="flex:1;background:var(--panel2);border:1px solid var(--line2);border-radius:99px;padding:8px 12px;font-size:10px;color:var(--mut)">Mensagem…</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--r),var(--r-deep));display:flex;align-items:center;justify-content:center;font-size:13px">➤</div>
+    </div>`, 1)});
+
+S({level:'user', n:'No Momento', title:['O clima do lugar, ','antes de sair de casa'],
+  kid:'Os estabelecimentos postam <b>stories ao vivo</b> do que está rolando — pista cheia, música, drink saindo. No app, o lugar com stories ganha a <b>borda animada</b> girando. O usuário decide o rolê <span class="em">vendo, não adivinhando</span>.',
+  pills:['Stories com hora marcada','Some sozinho (TTL)','Borda animada na lista','Decisão com prova visual'],
+  mock: phone(`
+    <div style="border-radius:18px;overflow:hidden;background:linear-gradient(160deg,#2a1015,#101014);height:310px;position:relative;border:1px solid var(--line2)">
+      <div style="position:absolute;top:10px;left:12px;right:12px;display:flex;gap:4px">
+        <div style="flex:1;height:3px;border-radius:99px;background:#fff"></div>
+        <div style="flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.3)"></div>
+        <div style="flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.3)"></div>
+      </div>
+      <div style="position:absolute;top:24px;left:12px;display:flex;align-items:center;gap:8px">
+        <span class="storyring" style="width:34px;height:34px"><span class="in" style="width:28px;height:28px;font-size:12px">🍺</span></span>
+        <div style="font-size:11px;font-weight:700">Bar do Alto <span style="color:var(--mut);font-weight:400">· agora</span></div>
+      </div>
+      <div style="position:absolute;bottom:60px;left:14px;right:14px;font-family:var(--disp);font-weight:900;font-size:17px;line-height:1.25">Pista LOTADA e a banda<br/>acabou de subir 🎸🔥</div>
+      <div style="position:absolute;bottom:14px;left:12px;right:12px;background:linear-gradient(135deg,var(--r),var(--r-deep));border-radius:99px;padding:10px;text-align:center;font-family:var(--disp);font-weight:800;font-size:11px">📍 47 pessoas aqui · fazer check-in</div>
+    </div>`)});
+
+S({level:'user', n:'Cortesias', title:['O drink grátis que ','te faz atravessar a rua'],
+  kid:'Estabelecimento querendo movimentar manda <b>cortesia direto no app</b>: “drink cortesia pra quem chegar até 22h”. O usuário recebe, resgata na entrada e o lugar enche. <span class="em">Todo mundo sai ganhando — literalmente</span>.',
+  pills:['Cortesia por push','Resgate com código','Vale só com check-in','Histórico de resgates'],
+  mock: phone(`
+    <div style="font-family:var(--disp);font-weight:900;font-size:14px;margin-bottom:10px">🎁 Suas cortesias</div>
+    <div class="card" style="margin-bottom:8px;border-color:rgba(239,44,57,.4)"><div class="h">🍸 Mirante Lounge <span class="tag">até 22h</span></div>
+      <div style="font-size:11.5px;color:#e8e8ec;margin-bottom:8px"><b>Gin tônica cortesia</b> pra quem fizer check-in hoje</div>
+      <div style="background:linear-gradient(135deg,var(--r),var(--r-deep));border-radius:10px;padding:9px;text-align:center;font-family:var(--disp);font-weight:900;font-size:12px">RESGATAR · IMH-4827</div>
+    </div>
+    <div class="card"><div class="h">🍺 Bar do Alto <span class="tag" style="color:var(--mut)">usada ✓</span></div>
+      <div style="font-size:11px;color:var(--mut)">Chopp em dobro · resgatada sexta passada</div>
+    </div>`, 2)});
+
+S({level:'user', n:'Planos & créditos', title:['De graça dá pra sair. ','Pra conhecer, assina'],
+  kid:'Free navega, faz check-in e vê quem está nos lugares. Os <b>desbloqueios sociais</b> — iniciar conversa, perfil completo, foto e áudio no chat — são por <b>plano ou crédito avulso</b>. E tem o pulo do gato: no <span class="em">Premium da Casa, o estabelecimento paga e libera tudo pra quem estiver lá</span>.',
+  pills:['Free: check-in e listas','Planos Básico / Premium / VIP','Créditos avulsos','Premium da Casa libera no local'],
+  mock: phone(`
+    <div class="big-red"><small>Seu plano</small><b>Premium</b><div style="font-size:9.5px;opacity:.8;margin-top:2px">conversas ilimitadas + perfil 360</div></div>
+    <div class="locked" style="margin-bottom:8px">
+      <div class="li blur"><div class="av hot">MA</div><div class="g"><b>Mariana, 27</b><small>bio completa, fotos, interesses…</small></div></div>
+      <div class="lock"><span class="ic">🔒</span><span style="font-size:10px;font-weight:800;font-family:var(--disp)">PERFIL 360 · PREMIUM</span></div>
+    </div>
+    <div class="li" style="border-color:rgba(168,85,247,.4)"><div class="av" style="background:linear-gradient(135deg,var(--pp),#7c3aed)">👑</div><div class="g"><b>Premium da Casa ativo!</b><small>Club Vega liberou chat pra todo mundo aqui</small></div><span class="st ok">grátis</span></div>`, 3)});
+
+S({level:'user', n:'Quem visitou seu perfil', title:['A curiosidade que ','paga assinatura'],
+  kid:'“Alguém te olhou no Bar do Alto.” O app registra as visitas ao perfil e mostra <b>quem foi — pra assinantes</b>. É o gatilho de conversão mais forte de qualquer app social, <span class="em">e aqui ele acontece no mundo real</span>.',
+  pills:['Registro de visitas','Desbloqueio premium','Notificação de interesse','Conversão comprovada'],
+  mock: phone(`
+    <div style="font-family:var(--disp);font-weight:900;font-size:14px;margin-bottom:10px">👀 Visitas ao seu perfil</div>
+    <div class="big-red" style="text-align:center"><small>Essa semana</small><b>12 pessoas</b><div style="font-size:9.5px;opacity:.8;margin-top:2px">te olharam em 3 lugares diferentes</div></div>
+    <div class="locked">
+      <div class="list blur">
+        <div class="li"><div class="av hot">??</div><div class="g"><b>████████, 2█</b><small>no Club Vega · ontem</small></div></div>
+        <div class="li"><div class="av hot">??</div><div class="g"><b>██████, 3█</b><small>no Bar do Alto · sexta</small></div></div>
+      </div>
+      <div class="lock"><span class="ic">🔒</span><span style="font-size:10px;font-weight:800;font-family:var(--disp)">VER QUEM FOI · ASSINE O VIP</span></div>
+    </div>`, 3)});
+
+/* ========================= 02 ESTABELECIMENTO ========================= */
+S({type:'intro', level:'estab', no:'02', who:'Para bares, baladas e restaurantes', title:'Estabelecimento',
+  desc:'Casa cheia atrai casa cheia. O painel do estabelecimento transforma o público presente em mídia: stories ao vivo, cortesias que puxam gente da rua, Premium da Casa como diferencial — e relatórios de quem frequenta.',
+  idx:['Dashboard ao vivo','No Momento (postar)','Cortesias & broadcast','Premium da Casa','Perfil, cardápio & avaliações','Boost & fidelidade','Relatórios de público']});
+
+S({level:'estab', n:'Dashboard ao vivo', title:['Quantos, quem e ','desde que horas'],
+  kid:'O painel abre no que interessa: <b>pessoas no local agora</b>, entradas da noite, pico de movimento e perfil do público. É o termômetro da casa em tempo real — <span class="em">e o histórico pra comparar com semana passada</span>.',
+  pills:['Presença ao vivo','Curva de movimento da noite','Perfil do público','Comparativo semanal'],
+  mock: appShell(ESTAB_NAV,'Dashboard',`
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="kpi hi"><div class="l">No local agora</div><div class="v">47</div><div class="dl">▲ pico 21h</div></div>
+      <div class="kpi"><div class="l">Check-ins hoje</div><div class="v">183</div><div class="dl">▲ 22%</div></div>
+      <div class="kpi"><div class="l">Novos no local</div><div class="v">61%</div></div>
+    </div>
+    <div class="card"><div class="h">Movimento da noite <span class="tag">ao vivo</span></div>
+      <div class="bars">${[15,25,40,60,85,100,90,70].map(h=>`<div class="b" style="height:${h}%"></div>`).join('')}</div>
+      <div class="line-lbls"><span>18h</span><span>19h</span><span>20h</span><span>21h</span><span>22h</span><span>23h</span><span>0h</span><span>1h</span></div>
+    </div>`)});
+
+S({level:'estab', n:'No Momento', title:['Sua pista lotada ','é o seu melhor anúncio'],
+  kid:'Postou o story, e o lugar ganha a <b>borda animada</b> na lista de todo usuário por perto — mostrando o clima real, agora. É a vitrine que nenhum panfleto entrega: <span class="em">prova social ao vivo</span>.',
+  pills:['Foto/vídeo com validade','Borda animada na lista','Aparece pra quem tá perto','Alcance medido'],
+  mock: appShell(ESTAB_NAV,'No Momento',`
+    <div class="card" style="margin-bottom:10px"><div class="h">📸 Postar agora <span class="tag">some em 4h</span></div>
+      <div style="height:90px;border-radius:10px;background:linear-gradient(160deg,#2a1015,#101014);display:flex;align-items:center;justify-content:center;font-size:24px;border:1px dashed var(--line2);margin-bottom:8px">📷</div>
+      <div style="font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px">Banda ao vivo e pista cheia! 🎸🔥</div>
+    </div>
+    <div class="grid2">
+      <div class="kpi hi"><div class="l">Viram seu story</div><div class="v">1.240</div></div>
+      <div class="kpi"><div class="l">Vieram depois</div><div class="v">89</div><div class="dl">conversão 7,2%</div></div>
+    </div>`)});
+
+S({level:'estab', n:'Cortesias & broadcast', title:['Noite morna? ','Chama a cidade'],
+  kid:'A casa dispara <b>cortesia ou mensagem</b> pra quem está por perto ou já frequentou: “drink cortesia até 22h”. Custo de um drink, retorno de uma mesa consumindo a noite toda. <span class="em">Demanda criada no aperto de um botão</span>.',
+  pills:['Cortesia com validade','Broadcast pra base','Resgate rastreado','Custo × retorno medido'],
+  mock: appShell(ESTAB_NAV,'Cortesias',`
+    <div class="card" style="margin-bottom:10px"><div class="h">🎁 Nova cortesia <span class="tag">rascunho</span></div>
+      <div style="font-size:11.5px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px;margin-bottom:8px">🍸 Gin tônica cortesia pra check-ins até 22h</div>
+      <div class="grid2">
+        <div class="kpi"><div class="l">Vai alcançar</div><div class="v">830</div></div>
+        <div class="kpi hi"><div class="l">Validade</div><div class="v">2h</div></div>
+      </div>
+      <div style="margin-top:10px;text-align:center"><span style="display:inline-block;background:linear-gradient(135deg,var(--r),var(--r-deep));color:#fff;font-family:var(--disp);font-weight:800;font-size:12px;border-radius:99px;padding:9px 22px">Disparar 🚀</span></div>
+    </div>
+    <div style="font-size:10px;color:var(--mut)">última cortesia: 74 resgates → casa cheia às 22h30</div>`)});
+
+S({level:'estab', n:'Premium da Casa', title:['A casa paga, ','a noite esquenta'],
+  kid:'O estabelecimento assina o <b>Premium da Casa</b> e libera os recursos pagos <b>pra todo mundo com check-in ali</b> — chat livre, perfis abertos. Vira O lugar onde a interação rola solta. <span class="em">Diferencial que lota — e receita B2B recorrente</span>.',
+  pills:['Chat livre pra todos no local','Assinatura mensal da casa','Selo 👑 na lista','O lugar onde rola conexão'],
+  mock: appShell(ESTAB_NAV,'Premium da Casa',`
+    <div class="card" style="margin-bottom:10px;border-color:rgba(168,85,247,.45);background:linear-gradient(160deg,rgba(168,85,247,.12),transparent)"><div class="h">👑 Premium da Casa <span class="tag" style="color:var(--pp);background:rgba(168,85,247,.15)">ATIVO</span></div>
+      <div style="font-size:11.5px;color:#e8e8ec;line-height:1.7">Todos os presentes com <b>chat liberado</b> e <b>perfis abertos</b> — cortesia da casa.</div>
+    </div>
+    <div class="grid3">
+      <div class="kpi"><div class="l">Conversas hoje</div><div class="v">218</div><div class="dl">▲ 4x a média</div></div>
+      <div class="kpi hi"><div class="l">Tempo de casa</div><div class="v">+38%</div></div>
+      <div class="kpi"><div class="l">Voltaram na semana</div><div class="v">31%</div></div>
+    </div>`)});
+
+S({level:'estab', n:'Perfil, cardápio & avaliações', title:['Sua página que ','trabalha por você'],
+  kid:'Galeria, cardápio, horários, Instagram, reservas por WhatsApp — o perfil é a <b>landing page da casa</b> dentro do app. E as avaliações de quem realmente esteve lá (só avalia quem fez check-in) constroem <span class="em">reputação que ninguém compra</span>.',
+  pills:['Galeria + cardápio digital','Link de reserva','Só avalia quem esteve lá','Instagram integrado'],
+  mock: appShell(ESTAB_NAV,'Perfil',`
+    <div class="grid3" style="margin-bottom:10px">
+      ${['#3a1015','#15303a','#2a2a15'].map(c=>`<div style="height:50px;border-radius:9px;background:linear-gradient(150deg,${c},#101014);border:1px solid var(--line)"></div>`).join('')}
+    </div>
+    <div class="li" style="margin-bottom:8px"><div class="av hot">BA</div><div class="g"><b>Bar do Alto ⭐ 4,8</b><small>312 avaliações de quem esteve lá</small></div><span class="st ok">perfil 94%</span></div>
+    <div class="card"><div class="h">Última avaliação</div>
+      <div style="font-size:11px;color:#e8e8ec">“Rooftop lindo e a cortesia do gin foi o toque. Voltarei!” <span style="color:var(--amber)">★★★★★</span></div>
+    </div>`)});
+
+S({level:'estab', n:'Boost & fidelidade', title:['Suba na lista, ','segure o cliente'],
+  kid:'O <b>boost</b> coloca a casa no topo da busca da região nos dias que importam. E a <b>fidelidade</b> premia presença: 5 check-ins, brinde na casa. Atrair é bom; <span class="em">fazer voltar é lucro</span>.',
+  pills:['Destaque pago por período','Topo da lista da região','Fidelidade por check-ins','Brinde configurável'],
+  mock: appShell(ESTAB_NAV,'Dashboard',`
+    <div class="card" style="margin-bottom:10px;border-color:rgba(239,44,57,.4)"><div class="h">🚀 Boost de sexta <span class="tag">ativo</span></div>
+      <div style="font-size:11px;color:#e8e8ec">Topo da lista num raio de 5km · 18h–2h</div>
+      <div class="grid2" style="margin-top:8px">
+        <div class="kpi"><div class="l">Impressões</div><div class="v">4.8k</div></div>
+        <div class="kpi hi"><div class="l">Check-ins do boost</div><div class="v">+52</div></div>
+      </div>
+    </div>
+    <div class="li"><div class="av">🏆</div><div class="g"><b>Fidelidade: 5 check-ins = chopp grátis</b><small>38 clientes a 1 visita do prêmio</small></div><span class="st ok">ativa</span></div>`)});
+
+S({level:'estab', n:'Relatórios de público', title:['Descubra quem é ','a sua noite'],
+  kid:'Faixa etária, horários de pico, taxa de retorno, origem dos check-ins (orgânico, cortesia, boost). A casa entende <b>quem frequenta e o que funciona</b> — e programa a agenda com dado, <span class="em">não com achismo</span>.',
+  pills:['Demografia do público','Pico por dia e hora','Retorno e recorrência','Origem de cada check-in'],
+  mock: appShell(ESTAB_NAV,'Relatórios',`
+    <div class="grid3" style="margin-bottom:10px">
+      <div class="kpi"><div class="l">Idade média</div><div class="v">26</div></div>
+      <div class="kpi hi"><div class="l">Taxa de retorno</div><div class="v">34%</div></div>
+      <div class="kpi"><div class="l">Melhor noite</div><div class="v">Sex</div></div>
+    </div>
+    <div class="card"><div class="h">Check-ins por origem <span class="tag">30 dias</span></div>
+      <div style="font-size:11px;margin-bottom:6px">Orgânico <b style="float:right">58%</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:58%;height:100%;border-radius:99px;background:var(--r)"></div></div>
+      <div style="font-size:11px;margin:8px 0 6px">Cortesias <b style="float:right">27%</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:27%;height:100%;border-radius:99px;background:var(--pp)"></div></div>
+      <div style="font-size:11px;margin:8px 0 6px">Boost <b style="float:right">15%</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:15%;height:100%;border-radius:99px;background:var(--amber)"></div></div>
+    </div>`)});
+
+/* ========================= 03 COMERCIAL ========================= */
+S({type:'intro', level:'com', no:'03', who:'Para quem vende a rede', title:'Comercial',
+  desc:'A rede cresce casa a casa: o comercial prospecta bares e baladas, cadastra na hora e ganha comissão recorrente sobre o que a carteira dele gerar — boost, Premium da Casa e planos.',
+  idx:['Pipeline de vendas','Cadastro de estabelecimentos','Clientes & atendimento','Comissões & relatórios']});
+
+S({level:'com', n:'Pipeline de vendas', title:['Da prospecção ','ao contrato'],
+  kid:'Cada bar e balada da região vira card no <b>funil</b>: prospect → visita → proposta → fechado. Com anotações e próximo passo — o comercial trabalha a cidade <span class="em">com método, não com memória</span>.',
+  pills:['Funil kanban','Próximo passo com data','Metas do mês','Histórico por casa'],
+  mock: appShell(COM_NAV,'Pipeline',`
+    <div class="kan">
+      <div><h6>Prospect</h6><div class="c">🍺 Boteco 88<small>visitar quinta</small></div><div class="c">🍸 Sky Bar<small>indicação</small></div></div>
+      <div><h6>Proposta</h6><div class="c">🎶 Arena Music<small>Premium da Casa</small></div></div>
+      <div><h6>Fechado ✓</h6><div class="c">🍺 Bar do Alto<small>boost + premium</small></div><div class="c">🎶 Club Vega<small>premium anual</small></div></div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="kpi"><div class="l">Meta do mês</div><div class="v">6/8</div></div>
+      <div class="kpi hi"><div class="l">Conversão</div><div class="v">41%</div></div>
+    </div>`)});
+
+S({level:'com', n:'Cadastro de estabelecimentos', title:['Fechou no balcão, ','casa no ar em minutos'],
+  kid:'O comercial cadastra o estabelecimento <b>na frente do dono</b>: dados, endereço com autocomplete, fotos — e a casa já aparece no app na mesma noite. Onboarding é argumento de venda: <span class="em">“seu bar entra no mapa agora”</span>.',
+  pills:['Cadastro assistido em minutos','Endereço com autocomplete','No ar na mesma noite','Vínculo permanente à carteira'],
+  mock: appShell(COM_NAV,'Estabelecimentos',`
+    <div class="card" style="margin-bottom:10px"><div class="h">➕ Novo estabelecimento</div>
+      <div style="font-size:11px;line-height:2;color:var(--mut)">🏷️ Sky Bar Rooftop ✓<br/>📍 Av. Central, 1200 — autocomplete ✓<br/>📷 4 fotos ✓ · 🍸 categoria: bar ✓</div>
+      <div style="margin-top:8px;text-align:center"><span style="display:inline-block;background:linear-gradient(135deg,var(--r),var(--r-deep));color:#fff;font-family:var(--disp);font-weight:800;font-size:12px;border-radius:99px;padding:9px 22px">Publicar no mapa →</span></div>
+    </div>
+    <div style="font-size:10px;color:var(--mut)">🔗 sua carteira: 14 casas ativas</div>`)});
+
+S({level:'com', n:'Clientes & atendimento', title:['Sua carteira, ','sua relação'],
+  kid:'As casas da carteira num painel só: quem está bombando, quem esfriou, quem tem renovação chegando. O comercial atende, sugere cortesia, renova boost — <b>o sucesso da casa é a comissão dele</b>.',
+  pills:['Saúde de cada casa','Alertas de renovação','Sugestões de ação','Atendimento registrado'],
+  mock: appShell(COM_NAV,'Clientes',`
+    <div class="list">
+      <div class="li"><div class="av hot">CV</div><div class="g"><b>Club Vega</b><small>premium anual · check-ins ▲ 22%</small></div><span class="st ok">saudável</span></div>
+      <div class="li"><div class="av">BA</div><div class="g"><b>Bar do Alto</b><small>boost vence em 5 dias</small></div><span class="st wa">renovar</span></div>
+      <div class="li"><div class="av">TR</div><div class="g"><b>Trattoria Roma</b><small>sem cortesia há 3 semanas</small></div><span class="st hot">sugerir ação</span></div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="kpi hi"><div class="l">Retenção da carteira</div><div class="v">92%</div></div>
+      <div class="kpi"><div class="l">Casas ativas</div><div class="v">14</div></div>
+    </div>`)});
+
+S({level:'com', n:'Comissões & relatórios', title:['Carteira ativa, ','renda recorrente'],
+  kid:'Comissão sobre <b>tudo que a carteira gera</b>: planos das casas, boost, Premium da Casa. Extrato em tempo real e relatório mensal — enquanto as casas estiverem ativas, <span class="em">o comercial recebe</span>.',
+  pills:['% sobre receita da carteira','Extrato em tempo real','Relatório mensal','Recorrência de verdade'],
+  mock: appShell(COM_NAV,'Comissões',`
+    <div class="big-red" style="background:linear-gradient(120deg,#14532d,#16a34a)"><small>Comissões de julho</small><b>R$ 2.840,00</b><div style="font-size:9.5px;opacity:.85;margin-top:2px">14 casas gerando recorrente</div></div>
+    <div class="rows">
+      <div class="r" style="grid-template-columns:1.6fr 1fr .7fr"><b>Club Vega</b><span>premium anual</span><span style="color:var(--grn)">+R$ 340</span></div>
+      <div class="r" style="grid-template-columns:1.6fr 1fr .7fr"><b>Bar do Alto</b><span>boost sexta</span><span style="color:var(--grn)">+R$ 90</span></div>
+      <div class="r" style="grid-template-columns:1.6fr 1fr .7fr"><b>Arena Music</b><span>premium mensal</span><span style="color:var(--grn)">+R$ 120</span></div>
+    </div>`)});
+
+/* ========================= 04 ADMIN (versão completa) ========================= */
+if(SHOW_ADMIN){
+
+S({type:'intro', level:'admin', no:'04', who:'O controle da rede', title:'Administração',
+  desc:'O painel de quem opera o I\\u2019m Here: métricas da rede, moderação do chat (o ativo mais sensível de um app social), gestão de planos e créditos, vendas e relatórios — com alertas do que precisa de atenção.',
+  idx:['Dashboard & vendas','Moderação','Usuários & estabelecimentos','Planos, créditos & config','Alertas & relatórios']});
+
+S({level:'admin', n:'Dashboard & vendas', title:['A rede inteira ','em números'],
+  kid:'Usuários ativos, check-ins do dia, receita por fonte (planos, créditos, casas), conversão free→pago. O admin vê <b>onde a rede pulsa</b> e onde precisa de gasolina.',
+  pills:['MAU e check-ins do dia','Receita por fonte','Conversão free → pago','Curvas por período'],
+  mock: appShell(ADMIN_NAV,'Dashboard',`
+    <div class="grid4" style="margin-bottom:12px">
+      <div class="kpi hi"><div class="l">Usuários ativos</div><div class="v">8.4k</div><div class="dl">▲ 14%</div></div>
+      <div class="kpi"><div class="l">Check-ins hoje</div><div class="v">1.9k</div></div>
+      <div class="kpi"><div class="l">MRR</div><div class="v">R$ 31k</div></div>
+      <div class="kpi"><div class="l">Free → pago</div><div class="v">6,8%</div></div>
+    </div>
+    <div class="card"><div class="h">Check-ins por dia <span class="tag">30 dias</span></div>
+      <div class="bars">${[30,35,28,42,80,95,60,32,38,30,45,88].map(h=>`<div class="b" style="height:${h}%"></div>`).join('')}</div>
+      <div class="line-lbls"><span>seg</span><span>qua</span><span>SEX</span><span>dom</span><span>ter</span><span>qui</span><span>SÁB</span><span>seg</span></div>
+    </div>`)});
+
+S({level:'admin', n:'Moderação', title:['App social seguro ','não é acidente'],
+  kid:'Filtro automático <b>bloqueia a mensagem antes de salvar</b>; denúncias caem numa fila com contexto completo; reincidente perde o chat. Num app de paquera, <span class="em">confiança é o produto</span> — e aqui ela tem processo.',
+  pills:['Filtro pré-envio (pt-BR)','Fila de denúncias','Suspensão gradual','Trilha de evidências'],
+  mock: appShell(ADMIN_NAV,'Moderação',`
+    <div class="card" style="margin-bottom:10px;border-color:rgba(251,113,133,.4)"><div class="h">🚨 Denúncia #218 <span class="tag" style="color:var(--red);background:rgba(251,113,133,.12)">assédio</span></div>
+      <div style="font-size:11px;color:#e8e8ec">user_4821 → denunciado por 2 usuárias no Club Vega<br/><span style="color:var(--mut)">mensagens anexadas · 3ª ocorrência</span></div>
+      <div class="grid2" style="margin-top:8px">
+        <span class="st no" style="text-align:center;justify-self:stretch;padding:8px;font-weight:800">SUSPENDER CHAT</span>
+        <span class="st wa" style="text-align:center;justify-self:stretch;padding:8px">advertir</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="kpi"><div class="l">Bloqueadas pelo filtro</div><div class="v">312</div><div class="dl">essa semana</div></div>
+      <div class="kpi hi"><div class="l">Tempo de resposta</div><div class="v">18min</div></div>
+    </div>`)});
+
+S({level:'admin', n:'Usuários & estabelecimentos', title:['Cada conta com ','visão 360º'],
+  kid:'Busca, filtros e o 360 de cada usuário e casa: check-ins, compras, denúncias, conversas moderadas, avaliações. Com CRUDs completos e ações rápidas — <b>o suporte resolve sem abrir o banco</b>.',
+  pills:['360º de usuários e casas','CRUDs completos','Ações rápidas','Cross-links entre telas'],
+  mock: appShell(ADMIN_NAV,'Usuários',`
+    <div class="li" style="margin-bottom:10px"><div class="av hot">MA</div><div class="g"><b>Mariana Costa · Premium</b><small>desde mar/26 · São Paulo</small></div><span class="st ok">ativa</span></div>
+    <div class="grid4" style="margin-bottom:10px">
+      <div class="kpi"><div class="l">Check-ins</div><div class="v">48</div></div>
+      <div class="kpi"><div class="l">Conversas</div><div class="v">31</div></div>
+      <div class="kpi hi"><div class="l">LTV</div><div class="v">R$ 214</div></div>
+      <div class="kpi"><div class="l">Denúncias</div><div class="v">0</div></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="st cy">ver check-ins</span><span class="st cy">compras</span><span class="st cy">notificar</span><span class="st no">suspender</span>
+    </div>`)});
+
+S({level:'admin', n:'Planos, créditos & config', title:['O modelo é ajustável ','sem deploy'],
+  kid:'Preço dos planos, pacotes de créditos, valor de cada desbloqueio, TTL do check-in — tudo <b>configurável no painel</b>. O negócio testa preço e regra <span class="em">na velocidade do mercado</span>, não do desenvolvimento.',
+  pills:['Planos e preços editáveis','Pacotes de créditos','Custo por desbloqueio','TTLs e regras do check-in'],
+  mock: appShell(ADMIN_NAV,'Planos',`
+    <div class="rows">
+      <div class="r hd" style="grid-template-columns:1.4fr 1fr 1fr"><span>Plano</span><span>Preço</span><span>Assinantes</span></div>
+      <div class="r" style="grid-template-columns:1.4fr 1fr 1fr"><b>Básico</b><span>R$ 14,90</span><span>412</span></div>
+      <div class="r" style="grid-template-columns:1.4fr 1fr 1fr"><b>Premium</b><span>R$ 24,90</span><span>386</span></div>
+      <div class="r" style="grid-template-columns:1.4fr 1fr 1fr"><b>VIP</b><span>R$ 39,90</span><span>129</span></div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="kpi"><div class="l">Iniciar conversa</div><div class="v">5 créditos</div></div>
+      <div class="kpi"><div class="l">TTL do check-in</div><div class="v">6h</div></div>
+    </div>`)});
+
+S({level:'admin', n:'Alertas & relatórios', title:['O painel avisa ','antes de virar problema'],
+  kid:'Denúncia acumulando, casa sem atividade, queda de check-ins na região, pico de cancelamentos — os <b>alertas</b> apontam onde olhar. E os relatórios fecham o ciclo com <b>filtros de período e export</b>.',
+  pills:['Alertas operacionais','Relatórios com período','Export dos dados','Visão por cidade/região'],
+  mock: appShell(ADMIN_NAV,'Relatórios',`
+    <div class="list" style="margin-bottom:10px">
+      <div class="li" style="border-color:rgba(251,191,36,.4)"><div class="av" style="background:var(--amber);color:#3a2a05">⚠️</div><div class="g"><b>Trattoria Roma sem check-ins há 6 dias</b><small>sugerir cortesia ao comercial</small></div></div>
+      <div class="li" style="border-color:rgba(251,113,133,.4)"><div class="av" style="background:var(--red)">🚨</div><div class="g"><b>3 denúncias no mesmo usuário</b><small>fila de moderação</small></div></div>
+    </div>
+    <div class="card"><div class="h">Receita por fonte <span class="tag">julho</span></div>
+      <div style="font-size:11px;margin-bottom:6px">Planos <b style="float:right">R$ 19,4k</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:62%;height:100%;border-radius:99px;background:var(--r)"></div></div>
+      <div style="font-size:11px;margin:8px 0 6px">Premium da Casa <b style="float:right">R$ 7,2k</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:23%;height:100%;border-radius:99px;background:var(--pp)"></div></div>
+      <div style="font-size:11px;margin:8px 0 6px">Créditos + boost <b style="float:right">R$ 4,6k</b></div><div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08)"><div style="width:15%;height:100%;border-radius:99px;background:var(--amber)"></div></div>
+    </div>`)});
+
+/* ===== MODELO DE RECEITA (só completa) ===== */
+S({type:'revenue'});
+
+}
+
+/* ========================= FECHAMENTO ========================= */
+S({type:'end'});
+
+/* ============================================================= */
+/* RENDER                                                         */
+/* ============================================================= */
+const deck = document.getElementById('deck');
+let secOrder = [];
+function levelName(id){return (LEVELS.find(l=>l.id===id)||{}).label||''}
+
+SLIDES.forEach((s,i)=>{
+  const el = document.createElement('section');
+  el.className='slide';
+  let lvl = s.level || (['cover','value','levelmap'].includes(s.type)?'intro':(s.type==='end'?'fim':(s.type==='revenue'?'admin':s.level)));
+  el.dataset.level = lvl;
+  el.dataset.i = i;
+  secOrder.push(lvl);
+
+  if(s.type==='cover'){
+    el.id='cover';
+    el.innerHTML=`<div class="glow a"></div><div class="glow b"></div>
+      <div style="position:relative;z-index:3">
+        <div class="wordmark"><span class="pin"></span>I'm <b>Here</b></div>
+        <div class="kick">A rede social do rolê</div>
+        <h1 class="big">A noite tem um mapa.<br/><span class="l">E ele mostra quem chegou.</span></h1>
+        <div class="sub">O I'm Here transforma a cidade num mapa social ao vivo: veja onde está bom AGORA, faça check-in quando chegar e conheça quem está no mesmo lugar que você — com regras, moderação e muito estilo.</div>
+      </div>
+      <div class="meta">
+        <span>Apresentação da plataforma · 2026</span>
+        <span>Navegue <kbd>←</kbd> <kbd>→</kbd> · <kbd>F</kbd> tela cheia</span>
+      </div>`;
+  }
+  else if(s.type==='value'){
+    el.innerHTML=`<div class="glow a"></div>
+      <div style="position:relative;z-index:2;width:100%;max-width:1300px;margin:0 auto">
+        <div class="kick">Por que o I'm Here</div>
+        <h2 class="sec">"Onde tá bom hoje?" é a pergunta<br/>mais feita do Brasil. <span style="color:var(--r-soft)">Ninguém respondia.</span></h2>
+        <p class="lead">Stories mostram a noite de ontem. Avaliação mostra o lugar de sempre. O I'm Here mostra <b style="color:var(--tx)">o AGORA</b> — quantas pessoas, qual clima, e quem você pode conhecer lá.</p>
+        <div class="vg">
+          <div class="v"><div class="ic">🔥</div><h3>Pra quem sai</h3><p>Decide o rolê vendo o movimento real e os stories ao vivo. E o melhor: o app é o quebra-gelo — conversa só entre quem está no mesmo lugar.</p></div>
+          <div class="v"><div class="ic">🍺</div><h3>Pra casa</h3><p>O público presente vira mídia: stories, cortesias que puxam gente da rua e o Premium da Casa que transforma o lugar no ponto de encontro.</p></div>
+          <div class="v"><div class="ic">📈</div><h3>Pra plataforma</h3><p>Assinaturas e créditos de quem quer conectar + receita B2B recorrente das casas (Premium da Casa, boost). Dois motores, um flywheel.</p></div>
+        </div>
+      </div>`;
+  }
+  else if(s.type==='levelmap'){
+    const cards=[['01','Usuário','Descobre, chega e conecta'],['02','Estabelecimento','Mostra o clima e lota a casa'],['03','Comercial','Vende a rede casa a casa']];
+    if(SHOW_ADMIN)cards.push(['04','Administração','Opera e modera a rede']);
+    el.innerHTML=`<div class="glow b"></div>
+      <div style="position:relative;z-index:2;width:100%;max-width:1300px;margin:0 auto">
+        <div class="kick">Um sistema, quatro acessos</div>
+        <h2 class="sec">Cada um vive o <span style="color:var(--r-soft)">seu</span> I'm Here.</h2>
+        <p class="lead">Web mobile-first + apps nativos, todos na mesma base em tempo real — o check-in do usuário aparece no painel da casa no mesmo segundo.</p>
+        <div class="vg" style="grid-template-columns:repeat(${cards.length},1fr);gap:12px;margin-top:34px">
+          ${cards.map(([n,t,d])=>`<div class="v" style="padding:18px"><div style="font-family:var(--disp);font-weight:900;font-size:26px;color:var(--r-soft)">${n}</div><h3 style="font-size:15.5px;margin:8px 0 4px">${t}</h3><p style="font-size:12.5px">${d}</p></div>`).join('')}
+        </div>
+        <p class="overline">Nos próximos slides, cada nível — módulo por módulo.</p>
+      </div>`;
+  }
+  else if(s.type==='intro'){
+    el.innerHTML=`<div class="glow a"></div>
+      <div class="levelintro">
+        <div style="display:flex;align-items:baseline;gap:24px;flex-wrap:wrap">
+          <div class="no">${s.no}</div>
+          <div><span class="who">${s.who}</span><h2>${s.title}</h2></div>
+        </div>
+        <p class="lead" style="max-width:70ch">${s.desc}</p>
+        <div class="idx">${s.idx.map(x=>`<span><b>›</b>${x}</span>`).join('')}</div>
+      </div>`;
+  }
+  else if(s.type==='revenue'){
+    el.innerHTML=`<div class="glow a"></div><div class="glow b"></div>
+      <div style="position:relative;z-index:2;width:100%;max-width:1300px;margin:0 auto">
+        <div class="kick">O modelo de negócio · todas as fontes de receita</div>
+        <h2 class="sec">9 formas de monetizar, <span style="color:var(--r-soft)">dois motores</span>.</h2>
+        <p class="lead">O desejo de conhecer gente paga o B2C (motor 1). O desejo de casa cheia paga o B2B (motor 2). Um alimenta o outro — e cada gatilho abaixo é uma linha de receita própria, já construída no produto.</p>
+        <div class="revgrid">
+          <div class="rev"><div class="ic">💳</div><h4>1 · Assinaturas (3 tiers)</h4><p><b>Básico, Premium e VIP</b> — mensalidade recorrente do usuário. Cada tier libera mais desbloqueios sociais. MRR base do B2C.</p></div>
+          <div class="rev"><div class="ic">💬</div><h4>2 · Desbloqueio: iniciar conversa</h4><p>Free vê quem está no lugar; <b>pra puxar papo, paga</b> (plano ou crédito). O gatilho nº 1 — cobrado no pico do desejo, com a pessoa a metros de distância.</p></div>
+          <div class="rev"><div class="ic">🪪</div><h4>3 · Desbloqueio: perfil 360</h4><p>Free vê foto + nome; <b>bio completa, fotos e interesses são pagos</b>. Converte a curiosidade em assinatura.</p></div>
+          <div class="rev"><div class="ic">📸</div><h4>4 · Desbloqueio: mídia no chat</h4><p><b>Foto e áudio na conversa são premium</b> — upsell natural de quem já está engajado no chat.</p></div>
+          <div class="rev"><div class="ic">👀</div><h4>5 · Desbloqueio: quem me visitou</h4><p>“12 pessoas te olharam essa semana” — <b>o gatilho de conversão mais forte de apps sociais</b>, aqui ancorado em lugares reais.</p></div>
+          <div class="rev"><div class="ic">🪙</div><h4>6 · Créditos avulsos</h4><p>Microtransação pra quem não assina: <b>compra créditos e paga por uso</b>. Porta de entrada do funil + receita de usuário casual.</p></div>
+          <div class="rev"><div class="ic">👑</div><h4>7 · Premium da Casa (B2B)</h4><p>O estabelecimento assina e <b>libera os desbloqueios pra todos no local</b>. Recorrência B2B vendida pelo comercial — e marketing do produto ao mesmo tempo.</p></div>
+          <div class="rev"><div class="ic">🚀</div><h4>8 · Boost de destaque (B2B)</h4><p>A casa paga pra ficar <b>no topo da lista da região</b> nos dias quentes. Mídia de alta intenção vendida por período.</p></div>
+          <div class="rev"><div class="ic">🎁</div><h4>9 · Cortesias & broadcast (B2B)</h4><p>Disparos pagos de cortesia e mensagem pra base — <b>tráfego pago dentro do app</b>, ativando demanda no momento exato.</p></div>
+        </div>
+        <p class="overline" style="margin-top:22px">+ escala: modelo replicável cidade a cidade com comercial local comissionado — densidade em um bairro já sustenta a operação.</p>
+      </div>`;
+  }
+  else if(s.type==='end'){
+    el.id='end';
+    el.innerHTML=`<div class="glow a"></div><div class="glow b"></div>
+      <div style="position:relative;z-index:3">
+        <div class="wordmark"><span class="pin"></span>I'm <b>Here</b></div>
+        <div class="kick">Vamos acender a sua cidade?</div>
+        <h2 class="big" style="font-size:clamp(34px,4.6vw,64px)">A cidade ao vivo. <span class="l">Você no mapa.</span></h2>
+        <p class="lead" style="margin:14px auto 0;text-align:center;max-width:60ch">Plataforma completa — app do usuário, painel das casas, time comercial e administração — pronta pra estrear no primeiro bairro.</p>
+        <div class="cta">Falar com o I'm Here →</div>
+        <div class="contact"><b>imhere-nine.vercel.app</b></div>
+      </div>`;
+  }
+  else{
+    el.innerHTML=`<div class="glow a"></div><div class="glow b"></div>
+      <div class="feat">
+        <div class="txt">
+          <div class="num">${String(i).padStart(2,'0')} · ${levelName(lvl)}</div>
+          <div class="kick" style="margin-top:10px">${s.n}</div>
+          <h2>${s.title.map((t,k)=>k%2?`<span class="hl">${t}</span>`:t).join('')}</h2>
+          <p class="kid">${s.kid}</p>
+          <div class="pills">${(s.pills||[]).map((p,k)=>`<span class="pill ${k===0?'hot':''}">${p}</span>`).join('')}</div>
+        </div>
+        <div class="mockwrap">${s.mock}</div>
+      </div>`;
+  }
+  deck.appendChild(el);
+});
+
+const railEl=document.getElementById('rail');
+const firstOf={};
+secOrder.forEach((lvl,i)=>{if(firstOf[lvl]===undefined)firstOf[lvl]=i});
+LEVELS.forEach(l=>{
+  if(firstOf[l.id]===undefined)return;
+  const a=document.createElement('a');
+  a.href='#';a.dataset.lvl=l.id;
+  a.innerHTML=`<span class="d"></span><span class="t">${l.label}</span>`;
+  a.onclick=(e)=>{e.preventDefault();goTo(firstOf[l.id])};
+  railEl.appendChild(a);
+});
+
+const slides=[...document.querySelectorAll('.slide')];
+document.getElementById('tot').textContent=String(slides.length).padStart(2,'0');
+let idx=0;
+function goTo(i){idx=Math.max(0,Math.min(slides.length-1,i));slides[idx].scrollIntoView()}
+function next(){goTo(idx+1)} function prev(){goTo(idx-1)}
+
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    idx=+e.target.dataset.i;
+    document.getElementById('cur').textContent=String(idx+1).padStart(2,'0');
+    document.getElementById('bar').firstElementChild.style.width=((idx)/(slides.length-1)*100)+'%';
+    const lvl=e.target.dataset.level;
+    [...railEl.children].forEach(a=>a.classList.toggle('on',a.dataset.lvl===lvl));
+  }});
+},{threshold:.55});
+slides.forEach(s=>io.observe(s));
+
+addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev()}
+  if(e.key==='Home')goTo(0);if(e.key==='End')goTo(slides.length-1);
+  if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}
+});
+</script>
+</body>
+</html>

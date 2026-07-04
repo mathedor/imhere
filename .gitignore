@@ -56,3 +56,5 @@ supabase/.env
 
 # Vercel
 .vercel
+imhere-apresentacao/.vercel/
+imhere-apresentacao/.env.local
