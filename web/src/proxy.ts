@@ -9,9 +9,41 @@ const ROLE_AREA: Record<string, string> = {
   admin: "/admin",
 };
 
+// ── Trava EM MANUTENÇÃO (controlada pela Ana) ─────────────────────────────
+// Fail-open: qualquer erro/timeout na Ana → site segue no ar normal.
+const manut = { t: 0, m: false };
+async function emManutencao(): Promise<boolean> {
+  const agora = Date.now();
+  if (agora - manut.t < 15000) return manut.m;
+  manut.t = agora; // marca antes: erro não martela a Ana
+  try {
+    const r = await fetch("https://www.ana.show/api/manutencao/imhere", {
+      signal: AbortSignal.timeout(800),
+    });
+    manut.m = r.ok && (await r.json()).m === true;
+  } catch {
+    manut.m = false;
+  }
+  return manut.m;
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
+
+  // Trava de manutenção — roda ANTES de qualquer lógica de auth.
+  // Nunca bloqueia: pulso da Ana, webhooks Efí, crons, a própria /manutencao,
+  // assets do Next e arquivos estáticos.
+  const passaManutencao =
+    path.startsWith("/api/ana") ||
+    path.startsWith("/api/webhooks") ||
+    path.startsWith("/api/cron") ||
+    path.startsWith("/_next") ||
+    path === "/manutencao" ||
+    /\.[a-z0-9]+$/i.test(path);
+  if (!passaManutencao && (await emManutencao())) {
+    return NextResponse.rewrite(new URL("/manutencao", request.url));
+  }
 
   // Se Supabase não está configurado, libera tudo (mock mode)
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
