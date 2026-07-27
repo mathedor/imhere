@@ -5,12 +5,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * CONECTOR DA ANA — pulso do I'm Here.
+ * CONECTOR DA ANA — pulso do I'm Here (Pulso v2).
  * GET /api/ana/pulso — Authorization: Bearer <ANA_PULSO_TOKEN>
  *
  * Métricas (todas de tabelas reais do schema):
- * - online_agora: checkins status='active' ainda não expirados (gente na balada AGORA)
- * - acessos_hoje: check-ins feitos hoje (America/Sao_Paulo)
+ * - novos_cadastros_hoje / cadastros_por_nivel: profiles criados hoje, por role
+ * - online_agora: usuários distintos com atividade nos últimos 15 min
+ *   (check-in feito ou mensagem enviada; last_seen_at nunca é gravado pelo app)
+ * - acessos_hoje: OMITIDO — não há tracking próprio de page views;
+ *   o AnaBeacon no layout público alimenta a Ana diretamente
  * - vendas_hoje / transacionado_hoje_centavos: payments status='paid' pagos hoje
  * - chamados_abertos: moderation_reports status='pending' (denúncias aguardando moderação)
  * - tarefas_pendentes: identity_verifications status='pending' (selfies aguardando revisão)
@@ -46,33 +49,52 @@ export async function GET(req: Request) {
   }
 
   const hoje = inicioHojeSP();
-  const agora = new Date().toISOString();
+  const ha15min = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
   if (sb) {
-    // online_agora — check-ins ativos e não expirados neste instante
+    // novos_cadastros_hoje + cadastros_por_nivel — profiles criados hoje, por role
     try {
-      const { count, error } = await sb
-        .from("checkins")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active")
-        .gt("expires_at", agora);
+      const { data, error } = await sb
+        .from("profiles")
+        .select("role")
+        .gte("created_at", hoje);
       if (error) throw error;
-      pulso.online_agora = count ?? 0;
+      const rows = (data ?? []) as Array<{ role: string | null }>;
+      pulso.novos_cadastros_hoje = rows.length;
+      const porNivel: Record<string, number> = {};
+      for (const r of rows) {
+        const nivel = r.role ?? "user";
+        porNivel[nivel] = (porNivel[nivel] ?? 0) + 1;
+      }
+      pulso.cadastros_por_nivel = porNivel;
+    } catch {
+      avisos.push("metrica novos_cadastros_hoje indisponivel");
+      avisos.push("metrica cadastros_por_nivel indisponivel");
+    }
+
+    // online_agora — usuários distintos com atividade nos últimos 15 min
+    // (check-in feito OU mensagem enviada; last_seen_at existe mas nunca é gravado)
+    try {
+      const ativos = new Set<string>();
+      const { data: cks, error: e1 } = await sb
+        .from("checkins")
+        .select("profile_id")
+        .gte("checked_in_at", ha15min);
+      if (e1) throw e1;
+      for (const c of (cks ?? []) as Array<{ profile_id: string }>) ativos.add(c.profile_id);
+      const { data: msgs, error: e2 } = await sb
+        .from("messages")
+        .select("sender_id")
+        .gte("created_at", ha15min);
+      if (e2) throw e2;
+      for (const m of (msgs ?? []) as Array<{ sender_id: string }>) ativos.add(m.sender_id);
+      pulso.online_agora = ativos.size;
     } catch {
       avisos.push("metrica online_agora indisponivel");
     }
 
-    // acessos_hoje — check-ins feitos hoje (o "acesso" do I'm Here é o check-in)
-    try {
-      const { count, error } = await sb
-        .from("checkins")
-        .select("id", { count: "exact", head: true })
-        .gte("checked_in_at", hoje);
-      if (error) throw error;
-      pulso.acessos_hoje = count ?? 0;
-    } catch {
-      avisos.push("metrica acessos_hoje indisponivel");
-    }
+    // acessos_hoje — OMITIDO de propósito: sem tracking próprio de visitas;
+    // o AnaBeacon (layout público) alimenta a Ana diretamente.
 
     // vendas_hoje + transacionado_hoje_centavos — payments pagos hoje (Efí seta status='paid' + paid_at)
     try {

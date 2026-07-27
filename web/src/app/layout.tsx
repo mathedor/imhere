@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SWRegister } from "@/components/SWRegister";
+import { AnaBeacon } from "@/components/AnaBeacon";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://imhere.app";
@@ -68,6 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <SWRegister />
+        <AnaBeacon />
       </body>
     </html>
   );
