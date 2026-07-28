@@ -578,7 +578,8 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 md:flex-row">
           <Logo size={28} />
           <p className="text-xs text-text-soft">
-            © {new Date().getFullYear()} I&apos;m Here · Todos os direitos reservados
+            © {new Date().getFullYear()} I&apos;m Here · Todos os direitos reservados · Desenvolvido por:{" "}
+            <a href="https://diretoriow.com.br" target="_blank" rel="noopener noreferrer" className="hover:text-text">Diretório Web</a>
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-text-soft">
             <Link href="/imprensa" className="hover:text-text">
