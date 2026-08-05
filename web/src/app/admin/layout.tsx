@@ -16,6 +16,7 @@ import {
   LogOut,
   Map,
   MapPin,
+  Receipt,
   Search as SearchIcon,
   Settings,
   ShieldCheck,
@@ -83,6 +84,7 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: "/admin/alertas", label: "Alertas", icon: AlertTriangle },
+  { href: "/admin/custos", label: "Custos & Desenvolvimento", icon: Receipt },
   { href: "/admin/config", label: "Configurações", icon: Settings },
 ];
 
