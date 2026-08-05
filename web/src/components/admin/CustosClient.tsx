@@ -350,7 +350,9 @@ export function CustosClient() {
         <span className="rounded-pill bg-warn/15 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-warn">
           estimado
         </span>{" "}
-        ainda precisam da fatura real para fechar.
+        ainda precisam da fatura real para fechar. As contas fixas são a cesta padrão da casa: mesmo
+        quando o serviço é compartilhado com outros projetos, o I&apos;m Here entra com o valor
+        cheio.
         {pronto && totais.emAberto > 0 && (
           <>
             {" "}

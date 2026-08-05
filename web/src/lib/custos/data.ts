@@ -56,13 +56,13 @@ const CONTAS_FIXAS: Omit<FixedItem, "id">[] = [
   },
   {
     nome: "Resend (e-mails)",
-    desc: "Confirmação de cadastro, recuperação de senha e avisos · US$ 20 × 5,45",
+    desc: "Envio dos e-mails da plataforma: confirmação de cadastro, recuperação de senha e avisos automáticos · US$ 20 × 5,45",
     valor: 109.0,
     estimado: true,
   },
   {
     nome: "WhatsApp (avisos e suporte)",
-    desc: "Canal de atendimento e disparo de avisos · plano a confirmar",
+    desc: "Número oficial da plataforma: atendimento ao cliente e à casa, confirmação de cadastro e disparo de avisos · plano mensal",
     valor: 99.0,
     estimado: true,
   },

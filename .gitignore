@@ -58,3 +58,4 @@ supabase/.env
 .vercel
 imhere-apresentacao/.vercel/
 imhere-apresentacao/.env.local
+.env*
