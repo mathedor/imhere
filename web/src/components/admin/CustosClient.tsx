@@ -86,7 +86,10 @@ interface Grupo {
 
 /* ------------------------------------------------------------------ */
 
-export function CustosClient() {
+/* `contasReais` chega do servidor com o que a infraestrutura custou de verdade
+   neste mês (a Ana lê a fatura da Vercel e o consumo do banco todo dia). Vale
+   só para o mês corrente: mês fechado guarda o que foi pago na época. */
+export function CustosClient({ contasReais }: { contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null }) {
   const [estado, setEstado] = useState<EstadoMap>({});
   const [custom, setCustom] = useState<CustoManual[]>([]);
   const [aberto, setAberto] = useState<Record<string, boolean>>({ [MESES[0].key]: true, dev08: true });
@@ -131,15 +134,19 @@ export function CustosClient() {
     const out: Grupo[] = [];
 
     for (const m of MESES) {
-      const itens: LinhaItem[] = m.itens.map((it) => ({
+      const corrente = m === MESES[0];
+      const itens: LinhaItem[] = m.itens.map((it) => {
+        const real = corrente ? contasReais?.find((r) => r.nome === it.nome) : undefined;
+        return {
         id: it.id,
         nome: it.nome,
-        desc: it.desc,
-        valor: valor(it.id, it.valor),
-        valorBase: it.valor,
-        estimado: it.estimado,
+        desc: real ? real.obs : it.desc,
+        valor: valor(it.id, real?.valor ?? it.valor),
+        valorBase: real?.valor ?? it.valor,
+        estimado: real ? real.estimado : it.estimado,
         editavel: true,
-      }));
+        };
+      });
 
       for (const c of custom) {
         const pertence = c.rec ? c.from <= m.ym : c.ym === m.ym;
