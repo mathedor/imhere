@@ -19,6 +19,19 @@ export const TIERS: Record<Tier, { tokens: number; label: string; brl: number }>
   X: { tokens: 16.5, label: "16,5 M", brl: 599.5 },
 };
 
+/* Margem da casa (regra do dono, 25/08/2026): remuneração de desenvolvimento
+   ganha 20% a partir da competência de SETEMBRO/2026 — mês fechado fica como
+   estava. A tabela de tiers segue na régua base: a Ana lê ela crua e aplica
+   a mesma margem do lado dela — a margem aqui é só de exibição/cálculo. */
+export const MARGEM_DEV = 1.2;
+export const MARGEM_DESDE = "2026-09";
+
+/** Preço de um tier na competência: régua base até ago/2026, ×1,2 dali em diante. */
+export function precoTier(mes: string, tier: Tier): number {
+  const c = TIERS[tier].brl;
+  return mes >= MARGEM_DESDE ? Math.round(c * MARGEM_DEV * 100) / 100 : c;
+}
+
 export interface FixedItem {
   id: string;
   nome: string;
@@ -267,6 +280,8 @@ const DEV_08: DevEntry[] = [
 
 export interface DevMes {
   key: string;
+  /** Competência YYYY-MM — decide se a margem da casa entra no preço. */
+  ym: string;
   nome: string;
   tag: string;
   itens: DevEntry[];
@@ -275,18 +290,21 @@ export interface DevMes {
 export const DEV_MESES: DevMes[] = [
   {
     key: "dev08",
+    ym: "2026-08",
     nome: "Desenvolvimento — Agosto 2026",
     tag: "toda sessão de trabalho no I'm Here é registrada aqui",
     itens: DEV_08,
   },
   {
     key: "dev07",
+    ym: "2026-07",
     nome: "Desenvolvimento — Julho 2026",
     tag: "apresentação, marca e integração com a Ana",
     itens: DEV_07,
   },
   {
     key: "dev05",
+    ym: "2026-05",
     nome: "Desenvolvimento — Maio 2026",
     tag: "evoluções logo depois da v1 no ar",
     itens: DEV_05,

@@ -27,6 +27,7 @@ import {
   STORAGE_KEY_CUSTOM,
   TIERS,
   USD,
+  precoTier,
   type DevEntry,
   type ServicoStatus,
 } from "@/lib/custos/data";
@@ -175,13 +176,16 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
       const itens: LinhaItem[] = dm.itens.map((e: DevEntry, i) => {
         const tier = TIERS[e[3]];
         tokens += tier.tokens;
+        /* preço da entrega na competência — a margem da casa (set/2026+)
+           entra aqui, só na exibição/cálculo */
+        const preco = precoTier(dm.ym, e[3]);
         return {
           id: `${dm.key}-${i}`,
           nome: e[1],
           desc: e[2],
           data: e[0],
-          valor: tier.brl,
-          valorBase: tier.brl,
+          valor: preco,
+          valorBase: preco,
           tokens: tier.label,
         };
       });
