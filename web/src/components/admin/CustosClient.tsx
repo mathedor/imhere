@@ -17,9 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import {
   ANUAIS,
-  DEV_MESES,
   INVESTIMENTO,
-  MESES,
   SERVICOS,
   SETUP_DATA,
   SETUP_TOTAL,
@@ -28,9 +26,15 @@ import {
   TIERS,
   USD,
   precoTier,
-  type DevEntry,
   type ServicoStatus,
 } from "@/lib/custos/data";
+import {
+  devMesesComAna,
+  mesesAteHoje,
+  pedidosDaAnaPorMes,
+  type GrupoPedidos,
+} from "@/lib/custos/meses";
+import type { EntregaDaAna } from "@/lib/custosAna";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -74,6 +78,8 @@ interface LinhaItem {
   editavel?: boolean;
   delId?: number;
   valorBase: number;
+  /** tarefa entregue pela Ana (selo "Ana") */
+  ana?: boolean;
 }
 
 interface Grupo {
@@ -90,10 +96,29 @@ interface Grupo {
 /* `contasReais` chega do servidor com o que a infraestrutura custou de verdade
    neste mês (a Ana lê a fatura da Vercel e o consumo do banco todo dia). Vale
    só para o mês corrente: mês fechado guarda o que foi pago na época. */
-export function CustosClient({ contasReais }: { contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null }) {
+/* `mesCorrente` vem do servidor (fuso de São Paulo) pra tela e servidor
+   concordarem sobre qual mês nasceu; `entregasAna` é o que a própria Ana
+   entregou aqui (buscado no servidor — o token não chega no navegador). */
+export function CustosClient({
+  contasReais,
+  mesCorrente,
+  entregasAna,
+}: {
+  contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null;
+  mesCorrente: string;
+  entregasAna: EntregaDaAna[];
+}) {
+  /* meses de contas até o corrente (o que falta no arquivo nasce aqui) e o
+     desenvolvimento com as tarefas da Ana — src/lib/custos/meses.ts */
+  const meses = useMemo(() => mesesAteHoje(mesCorrente), [mesCorrente]);
+  const devMeses = useMemo(() => devMesesComAna(entregasAna), [entregasAna]);
+  const pedidos = useMemo(() => pedidosDaAnaPorMes(entregasAna), [entregasAna]);
   const [estado, setEstado] = useState<EstadoMap>({});
   const [custom, setCustom] = useState<CustoManual[]>([]);
-  const [aberto, setAberto] = useState<Record<string, boolean>>({ [MESES[0].key]: true, dev08: true });
+  const [aberto, setAberto] = useState<Record<string, boolean>>(() => ({
+    [mesesAteHoje(mesCorrente)[0].key]: true,
+    [devMesesComAna(entregasAna)[0]?.key ?? "dev"]: true,
+  }));
   const [modal, setModal] = useState(false);
   const [pronto, setPronto] = useState(false);
 
@@ -134,8 +159,8 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
   const grupos = useMemo<Grupo[]>(() => {
     const out: Grupo[] = [];
 
-    for (const m of MESES) {
-      const corrente = m === MESES[0];
+    for (const m of meses) {
+      const corrente = m === meses[0];
       const itens: LinhaItem[] = m.itens.map((it) => {
         const real = corrente ? contasReais?.find((r) => r.nome === it.nome) : undefined;
         return {
@@ -153,7 +178,7 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
         const pertence = c.rec ? c.from <= m.ym : c.ym === m.ym;
         if (!pertence) continue;
         const oid = `c${c.id}-${m.key}`;
-        const nomeMesOrigem = MESES.find((x) => x.ym === c.from)?.nome ?? c.from;
+        const nomeMesOrigem = meses.find((x) => x.ym === c.from)?.nome ?? c.from;
         itens.push({
           id: oid,
           nome: c.titulo,
@@ -171,22 +196,24 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
       out.push({ key: m.key, nome: m.nome, tag: m.tag, coluna: "meses", itens });
     }
 
-    for (const dm of DEV_MESES) {
+    for (const dm of devMeses) {
       let tokens = 0;
-      const itens: LinhaItem[] = dm.itens.map((e: DevEntry, i) => {
-        const tier = TIERS[e[3]];
+      const itens: LinhaItem[] = dm.itens.map((e) => {
+        const tier = TIERS[e.tier];
         tokens += tier.tokens;
         /* preço da entrega na competência — a margem da casa (set/2026+)
-           entra aqui, só na exibição/cálculo */
-        const preco = precoTier(dm.ym, e[3]);
+           entra aqui, só na exibição/cálculo; tarefa da Ana vai pela mesma
+           régua (é assim que a Ana soma no desenvolvimento do mês dela) */
+        const preco = precoTier(dm.ym, e.tier);
         return {
-          id: `${dm.key}-${i}`,
-          nome: e[1],
-          desc: e[2],
-          data: e[0],
+          id: e.id,
+          nome: e.nome,
+          desc: e.desc,
+          data: e.data,
           valor: preco,
           valorBase: preco,
           tokens: tier.label,
+          ana: e.ana,
         };
       });
       out.push({ key: dm.key, nome: dm.nome, tag: dm.tag, coluna: "dev", itens, tokensTotal: tokens });
@@ -194,7 +221,7 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estado, custom]);
+  }, [estado, custom, meses, devMeses]);
 
   const totais = useMemo(() => {
     let devTotal = 0;
@@ -217,16 +244,21 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
       }
     }
 
-    const mesAtual = grupos.find((g) => g.key === MESES[0].key)!;
+    const mesAtual = grupos.find((g) => g.key === meses[0].key)!;
     const mesContas = mesAtual.itens.reduce((s, it) => s + it.valor, 0);
     const mesContasPagas = mesAtual.itens.reduce((s, it) => s + (pago(it.id) ? it.valor : 0), 0);
-    const devMesAtual = grupos.find((g) => g.key === DEV_MESES[0].key);
+    /* o desenvolvimento do mês corrente de verdade — não o último escrito */
+    const devKey = devMeses.find((d) => d.ym === meses[0].ym)?.key;
+    const devMesAtual = devKey ? grupos.find((g) => g.key === devKey) : undefined;
     const mesDev = devMesAtual ? devMesAtual.itens.reduce((s, it) => s + it.valor, 0) : 0;
     const mesDevPago = devMesAtual
       ? devMesAtual.itens.reduce((s, it) => s + (pago(it.id) ? it.valor : 0), 0)
       : 0;
     const mesTotal = mesContas + mesDev;
     const mesPct = mesTotal > 0 ? Math.round(((mesContasPagas + mesDevPago) / mesTotal) * 100) : 100;
+
+    /* pedidos da Ana: faturados a quem pediu — fora do "em aberto" daqui */
+    const pedidosAbertos = pedidos.flatMap((g) => g.itens).filter((p) => !p.pago);
 
     return {
       investido: SETUP_TOTAL + devTotal,
@@ -239,6 +271,8 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
       mesDev,
       mesTotal,
       mesPct,
+      pedidosAberto: pedidosAbertos.reduce((s, p) => s + p.valor, 0),
+      pedidosAbertoN: pedidosAbertos.length,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grupos, estado]);
@@ -292,8 +326,8 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
     if (!form.data) return "Informe a data.";
     const ym = form.data.slice(0, 7);
     const dia = `${form.data.slice(8, 10)}/${form.data.slice(5, 7)}`;
-    if (!form.rec && !MESES.some((m) => m.ym === ym)) {
-      return `Esse mês ainda não está no controle (vai de ${MESES[MESES.length - 1].nome} a ${MESES[0].nome}).`;
+    if (!form.rec && !meses.some((m) => m.ym === ym)) {
+      return `Esse mês ainda não está no controle (vai de ${meses[meses.length - 1].nome} a ${meses[0].nome}).`;
     }
     persistirCustom([
       ...custom,
@@ -341,12 +375,12 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
           icon={Wallet}
           label="Custo mensal"
           value={brl(totais.mesContas)}
-          sub={`${MESES[0].itens.length} contas fixas · dólar a R$ ${USD.toFixed(2).replace(".", ",")}`}
+          sub={`${meses[0].itens.length} contas fixas · dólar a R$ ${USD.toFixed(2).replace(".", ",")}`}
           color="#3b82f6"
         />
         <Kpi
           icon={CalendarDays}
-          label={`Mês corrente · ${MESES[0].nome}`}
+          label={`Mês corrente · ${meses[0].nome}`}
           value={brl(totais.mesTotal)}
           sub={`${brl(totais.mesContas)} em contas + ${brl(totais.mesDev)} em desenvolvimento · ${totais.mesPct}% pago`}
           color="#22c55e"
@@ -369,6 +403,19 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
             {" "}
             Hoje há <b className="text-brand">{brl(totais.emAberto)}</b> em aberto (
             {totais.emAbertoN} lançamentos).
+          </>
+        )}{" "}
+        O que a Ana entrega entra sozinho: tarefa dela vai no desenvolvimento do mês (marcada{" "}
+        <span className="rounded-pill bg-brand/15 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-brand">
+          Ana
+        </span>
+        ) e cada pedido externo aparece em <b className="text-text">Pedidos pela Ana</b>, com a fatura
+        própria de quem pediu — fora do rateio.
+        {pronto && totais.pedidosAbertoN > 0 && (
+          <>
+            {" "}
+            Em pedidos: <b className="text-text">{brl(totais.pedidosAberto)}</b> em aberto (
+            {totais.pedidosAbertoN} {totais.pedidosAbertoN === 1 ? "fatura" : "faturas"}).
           </>
         )}
       </p>
@@ -455,6 +502,16 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
             />
           ))}
 
+          {/* pedidos da Ana — fatura própria de quem pediu, fora do mês */}
+          {pedidos.map((g) => (
+            <CardPedidos
+              key={g.key}
+              grupo={g}
+              aberto={!!aberto[g.key]}
+              onToggle={() => setAberto((a) => ({ ...a, [g.key]: !a[g.key] }))}
+            />
+          ))}
+
           {/* anuais / únicos */}
           <Card
             aberto={!!aberto.anuais}
@@ -519,7 +576,7 @@ export function CustosClient({ contasReais }: { contasReais: { nome: string; val
         <ModalCusto
           onClose={() => setModal(false)}
           onSave={salvarCusto}
-          meses={MESES.map((m) => ({ ym: m.ym, nome: m.nome })).reverse()}
+          meses={meses.map((m) => ({ ym: m.ym, nome: m.nome })).reverse()}
         />
       )}
     </>
@@ -761,6 +818,14 @@ function Acordeao({
                     manual
                   </span>
                 )}
+                {it.ana && (
+                  <span
+                    title="Entregue pela Ana — paga junto com o mês"
+                    className="rounded-pill bg-brand/15 px-1.5 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide text-brand"
+                  >
+                    Ana
+                  </span>
+                )}
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-text-soft">{it.desc}</p>
             </div>
@@ -804,6 +869,86 @@ function Acordeao({
           </div>
         );
       })}
+    </Card>
+  );
+}
+
+/* Pedidos que a Ana executou aqui: cada um já tem fatura, cobrada de quem
+   pediu. Nada de ✓ clicável nem "marcar mês" — o pago é o da fatura. */
+function CardPedidos({
+  grupo,
+  aberto,
+  onToggle,
+}: {
+  grupo: GrupoPedidos;
+  aberto: boolean;
+  onToggle: () => void;
+}) {
+  const total = grupo.itens.reduce((s, p) => s + p.valor, 0);
+  const pagoTotal = grupo.itens.reduce((s, p) => s + (p.pago ? p.valor : 0), 0);
+  const pct = total > 0 ? Math.round((pagoTotal / total) * 100) : 100;
+  const n = grupo.itens.length;
+  return (
+    <Card
+      aberto={aberto}
+      onToggle={onToggle}
+      done={pct >= 100}
+      titulo={grupo.nome}
+      pill={pct >= 100 ? "Faturas pagas" : undefined}
+      tag={`${n} ${n === 1 ? "pedido" : "pedidos"} · faturado${n === 1 ? "" : "s"} a quem pediu · fora do rateio do mês`}
+      totalLabel={brl(total)}
+      totalSub={`${pct}% das faturas pagas`}
+      barra={pct}
+    >
+      <div className="border-b border-border bg-surface-2/60 px-4 py-2">
+        <span className="text-[0.68rem] font-bold tabular-nums text-muted">
+          {brl(pagoTotal)} de {brl(total)} pagos — a baixa vem da fatura de cada pedido
+        </span>
+      </div>
+      {grupo.itens.map((p) => (
+        <div
+          key={p.id}
+          className={cn(
+            "grid grid-cols-[1fr_auto] items-start gap-3 border-b border-border px-4 py-3 last:border-b-0",
+            p.pago && "bg-success/[0.06]"
+          )}
+        >
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "flex flex-wrap items-center gap-1.5 text-sm font-bold leading-snug [overflow-wrap:anywhere]",
+                p.pago ? "text-success" : "text-text"
+              )}
+            >
+              <span className="rounded-pill bg-surface-3 px-1.5 py-0.5 text-[0.58rem] font-bold tabular-nums text-text-soft">
+                {p.data}
+              </span>
+              {p.nome}
+              <span
+                className={cn(
+                  "rounded-pill px-1.5 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide",
+                  p.pago ? "bg-success/15 text-success" : "bg-warn/15 text-warn"
+                )}
+              >
+                {p.pago ? "fatura paga" : "fatura aberta"}
+              </span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-text-soft [overflow-wrap:anywhere]">
+              {[p.desc, `pedido #${p.numero}${p.quem ? ` de ${p.quem}` : ""}`].filter(Boolean).join(" · ")}
+            </p>
+          </div>
+          <div className="text-right">
+            <span className={cn("block text-sm font-black tabular-nums", p.pago ? "text-success" : "text-text")}>
+              {brl(p.valor)}
+            </span>
+            {p.tokens > 0 && (
+              <span className="block text-[0.6rem] font-semibold text-muted">
+                ≈ {p.tokens.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} M tokens
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
     </Card>
   );
 }
