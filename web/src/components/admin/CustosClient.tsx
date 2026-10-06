@@ -29,12 +29,16 @@ import {
   type ServicoStatus,
 } from "@/lib/custos/data";
 import {
+  EVENTO_PAGAMENTOS,
   devMesesComAna,
   mesesAteHoje,
+  nomeDoMes,
+  notasDaOrigem,
   pedidosDaAnaPorMes,
+  saldosNoMes,
   type GrupoPedidos,
 } from "@/lib/custos/meses";
-import type { EntregaDaAna } from "@/lib/custosAna";
+import type { EntregaDaAna, PagamentosAna, SaldoAna } from "@/lib/custosAna";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -80,6 +84,8 @@ interface LinhaItem {
   valorBase: number;
   /** tarefa entregue pela Ana (selo "Ana") */
   ana?: boolean;
+  /** saldo da Ana (mês pago que mudou depois): o pago é o dela, só leitura */
+  saldo?: { pago: boolean };
 }
 
 interface Grupo {
@@ -89,6 +95,18 @@ interface Grupo {
   coluna: "meses" | "dev";
   itens: LinhaItem[];
   tokensTotal?: number;
+  ym?: string;
+  /** mês de origem de saldo: pra onde foi a diferença */
+  notas?: string[];
+}
+
+/** pago da linha: saldo vem da Ana; o resto, do ✓ deste navegador */
+const pagoDaLinha = (it: LinhaItem, pago: (id: string) => boolean) => (it.saldo ? it.saldo.pago : pago(it.id));
+
+function linhasDeSaldo(saldos: SaldoAna[], tipo: "dev" | "custos", ym: string): LinhaItem[] {
+  return saldosNoMes(saldos, tipo, ym).map((x) => ({
+    id: x.id, nome: x.nome, desc: x.desc, valor: x.valor, valorBase: x.valor, saldo: { pago: x.pago },
+  }));
 }
 
 /* ------------------------------------------------------------------ */
@@ -103,16 +121,29 @@ export function CustosClient({
   contasReais,
   mesCorrente,
   entregasAna,
+  saldosIniciais,
 }: {
   contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null;
   mesCorrente: string;
   entregasAna: EntregaDaAna[];
+  /** saldos da Ana (GET /api/custos-pagamentos) — redesenha com a resposta de cada baixa */
+  saldosIniciais: SaldoAna[];
 }) {
   /* meses de contas até o corrente (o que falta no arquivo nasce aqui) e o
      desenvolvimento com as tarefas da Ana — src/lib/custos/meses.ts */
   const meses = useMemo(() => mesesAteHoje(mesCorrente), [mesCorrente]);
   const devMeses = useMemo(() => devMesesComAna(entregasAna), [entregasAna]);
   const pedidos = useMemo(() => pedidosDaAnaPorMes(entregasAna), [entregasAna]);
+  const [saldos, setSaldos] = useState<SaldoAna[]>(saldosIniciais);
+  useEffect(() => {
+    /* baixa dada no quadro de pagamentos: a Ana devolve os saldos atualizados */
+    const ouvir = (ev: Event) => {
+      const d = (ev as CustomEvent<PagamentosAna>).detail;
+      if (d && Array.isArray(d.saldos)) setSaldos(d.saldos);
+    };
+    window.addEventListener(EVENTO_PAGAMENTOS, ouvir);
+    return () => window.removeEventListener(EVENTO_PAGAMENTOS, ouvir);
+  }, []);
   const [estado, setEstado] = useState<EstadoMap>({});
   const [custom, setCustom] = useState<CustoManual[]>([]);
   const [aberto, setAberto] = useState<Record<string, boolean>>(() => ({
@@ -193,7 +224,9 @@ export function CustosClient({
         });
       }
 
-      out.push({ key: m.key, nome: m.nome, tag: m.tag, coluna: "meses", itens });
+      /* saldo que cai neste mês entra como linha; o que saiu dele vira nota */
+      itens.push(...linhasDeSaldo(saldos, "custos", m.ym));
+      out.push({ key: m.key, nome: m.nome, tag: m.tag, coluna: "meses", itens, ym: m.ym, notas: notasDaOrigem(saldos, "custos", m.ym) });
     }
 
     for (const dm of devMeses) {
@@ -216,12 +249,24 @@ export function CustosClient({
           ana: e.ana,
         };
       });
-      out.push({ key: dm.key, nome: dm.nome, tag: dm.tag, coluna: "dev", itens, tokensTotal: tokens });
+      itens.push(...linhasDeSaldo(saldos, "dev", dm.ym));
+      out.push({ key: dm.key, nome: dm.nome, tag: dm.tag, coluna: "dev", itens, tokensTotal: tokens, ym: dm.ym, notas: notasDaOrigem(saldos, "dev", dm.ym) });
+    }
+    /* saldo de desenvolvimento num mês que já começou mas não tem entrega */
+    for (const m of meses) {
+      if (devMeses.some((d) => d.ym === m.ym)) continue;
+      const itens = linhasDeSaldo(saldos, "dev", m.ym);
+      if (!itens.length) continue;
+      out.push({ key: `dev-saldo-${m.ym}`, nome: `Desenvolvimento — ${m.nome}`, tag: "saldo de mês já pago", coluna: "dev", itens, ym: m.ym });
     }
 
-    return out;
+    /* desenvolvimento do mais recente pro mais antigo (os meses já vêm assim) */
+    return [
+      ...out.filter((g) => g.coluna === "meses"),
+      ...out.filter((g) => g.coluna === "dev").sort((a, b) => (b.ym ?? "").localeCompare(a.ym ?? "")),
+    ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estado, custom, meses, devMeses]);
+  }, [estado, custom, meses, devMeses, saldos]);
 
   const totais = useMemo(() => {
     let devTotal = 0;
@@ -232,27 +277,35 @@ export function CustosClient({
 
     for (const g of grupos) {
       for (const it of g.itens) {
-        if (!pago(it.id) && it.valor > 0) {
+        /* saldo em aberto conta com sinal (crédito abate) */
+        if (!pagoDaLinha(it, pago) && (it.valor > 0 || it.saldo)) {
           emAberto += it.valor;
           emAbertoN += 1;
         }
       }
       if (g.coluna === "dev") {
-        devTotal += g.itens.reduce((s, it) => s + it.valor, 0);
+        /* investido = entregas; o saldo já está no total do mês de origem */
+        const entregas = g.itens.filter((it) => !it.saldo);
+        devTotal += entregas.reduce((s, it) => s + it.valor, 0);
         devTokens += g.tokensTotal ?? 0;
-        devEntradas += g.itens.length;
+        devEntradas += entregas.length;
       }
+    }
+    /* saldo de um mês que ainda não começou: não tem linha, mas está em aberto */
+    const saldosFuturos = saldos.filter((x) => !x.pago && x.centavos !== 0 && x.destino > meses[0].ym);
+    for (const x of saldosFuturos) {
+      emAberto += x.centavos / 100;
+      emAbertoN += 1;
     }
 
     const mesAtual = grupos.find((g) => g.key === meses[0].key)!;
     const mesContas = mesAtual.itens.reduce((s, it) => s + it.valor, 0);
-    const mesContasPagas = mesAtual.itens.reduce((s, it) => s + (pago(it.id) ? it.valor : 0), 0);
+    const mesContasPagas = mesAtual.itens.reduce((s, it) => s + (pagoDaLinha(it, pago) ? it.valor : 0), 0);
     /* o desenvolvimento do mês corrente de verdade — não o último escrito */
-    const devKey = devMeses.find((d) => d.ym === meses[0].ym)?.key;
-    const devMesAtual = devKey ? grupos.find((g) => g.key === devKey) : undefined;
+    const devMesAtual = grupos.find((g) => g.coluna === "dev" && g.ym === meses[0].ym);
     const mesDev = devMesAtual ? devMesAtual.itens.reduce((s, it) => s + it.valor, 0) : 0;
     const mesDevPago = devMesAtual
-      ? devMesAtual.itens.reduce((s, it) => s + (pago(it.id) ? it.valor : 0), 0)
+      ? devMesAtual.itens.reduce((s, it) => s + (pagoDaLinha(it, pago) ? it.valor : 0), 0)
       : 0;
     const mesTotal = mesContas + mesDev;
     const mesPct = mesTotal > 0 ? Math.round(((mesContasPagas + mesDevPago) / mesTotal) * 100) : 100;
@@ -273,9 +326,10 @@ export function CustosClient({
       mesPct,
       pedidosAberto: pedidosAbertos.reduce((s, p) => s + p.valor, 0),
       pedidosAbertoN: pedidosAbertos.length,
+      saldosFuturos,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grupos, estado]);
+  }, [grupos, estado, saldos]);
 
   /* ---------------- ações ---------------- */
 
@@ -285,9 +339,11 @@ export function CustosClient({
   }
 
   function alternarGrupo(g: Grupo) {
-    const todosPagos = g.itens.every((it) => pago(it.id) || it.valor === 0);
+    /* saldo não tem ✓ aqui: a Ana baixa ele junto com o mês */
+    const marcaveis = g.itens.filter((it) => !it.saldo);
+    const todosPagos = marcaveis.every((it) => pago(it.id) || it.valor === 0);
     const next = { ...estado };
-    for (const it of g.itens) next[it.id] = { ...next[it.id], p: todosPagos ? 0 : 1 };
+    for (const it of marcaveis) next[it.id] = { ...next[it.id], p: todosPagos ? 0 : 1 };
     persistir(next);
   }
 
@@ -402,7 +458,14 @@ export function CustosClient({
           <>
             {" "}
             Hoje há <b className="text-brand">{brl(totais.emAberto)}</b> em aberto (
-            {totais.emAbertoN} lançamentos).
+            {totais.emAbertoN} lançamentos
+            {totais.saldosFuturos.map((x) => (
+              <span key={x.ref}>
+                {" "}— inclui {x.centavos < 0 ? "crédito" : "saldo"} de {brl(x.centavos / 100)} de{" "}
+                {nomeDoMes(x.origem)}, que entra em {nomeDoMes(x.destino)}
+              </span>
+            ))}
+            ).
           </>
         )}{" "}
         O que a Ana entrega entra sozinho: tarefa dela vai no desenvolvimento do mês (marcada{" "}
@@ -649,6 +712,7 @@ function Card({
   totalSub,
   done,
   barra,
+  notas,
   children,
 }: {
   aberto: boolean;
@@ -660,6 +724,8 @@ function Card({
   totalSub: string;
   done?: boolean;
   barra?: number;
+  /** embaixo do total: pra onde foi a diferença do mês (saldo) */
+  notas?: string[];
   children: React.ReactNode;
 }) {
   return (
@@ -694,6 +760,11 @@ function Card({
               {totalLabel}
             </p>
             <p className="text-[0.62rem] text-muted">{totalSub}</p>
+            {notas?.map((n) => (
+              <p key={n} className="mt-1 max-w-[13rem] text-[0.62rem] leading-snug text-text-soft">
+                {n}
+              </p>
+            ))}
           </div>
         </div>
         {typeof barra === "number" && (
@@ -730,7 +801,8 @@ function Acordeao({
   onExcluir?: (id: number) => void;
 }) {
   const total = grupo.itens.reduce((s, it) => s + it.valor, 0);
-  const pagoTotal = grupo.itens.reduce((s, it) => s + (pago(it.id) ? it.valor : 0), 0);
+  const pagoTotal = grupo.itens.reduce((s, it) => s + (pagoDaLinha(it, pago) ? it.valor : 0), 0);
+  const soSaldo = grupo.itens.every((it) => it.saldo);
   const pct = total > 0 ? Math.round((pagoTotal / total) * 100) : 100;
   const done = pct >= 100;
   const ehMes = grupo.coluna === "meses";
@@ -752,12 +824,13 @@ function Acordeao({
       totalLabel={brl(total)}
       totalSub={`${pct}% pago`}
       barra={pct}
+      notas={grupo.notas}
     >
       <div className="flex items-center justify-between gap-2 border-b border-border bg-surface-2/60 px-4 py-2">
         <span className="text-[0.68rem] font-bold tabular-nums text-muted">
           {brl(pagoTotal)} de {brl(total)} pagos
         </span>
-        <button
+        {!soSaldo && <button
           type="button"
           onClick={onGrupo}
           className={cn(
@@ -768,11 +841,12 @@ function Acordeao({
           )}
         >
           {done ? "Desmarcar tudo" : `Marcar ${ehMes ? "mês" : "tudo"} como pago`}
-        </button>
+        </button>}
       </div>
 
       {grupo.itens.map((it) => {
-        const p = pago(it.id);
+        const p = pagoDaLinha(it, pago);
+        const credito = Boolean(it.saldo) && it.valor < 0;
         return (
           <div
             key={it.id}
@@ -781,6 +855,18 @@ function Acordeao({
               p && "bg-success/[0.06]"
             )}
           >
+            {it.saldo ? (
+              /* saldo: o pago é o da Ana (baixa junto com o mês) — sem clique */
+              <span
+                title={p ? "Pago junto com o mês" : "A baixa vem junto com a do mês"}
+                className={cn(
+                  "mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border-2 border-dashed",
+                  p ? "border-success bg-success text-white" : "border-border text-transparent"
+                )}
+              >
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+            ) : (
             <button
               type="button"
               onClick={() => onItem(it.id)}
@@ -794,6 +880,7 @@ function Acordeao({
             >
               <Check className="size-3" strokeWidth={3} />
             </button>
+            )}
 
             <div className="min-w-0">
               <p
@@ -826,6 +913,16 @@ function Acordeao({
                     Ana
                   </span>
                 )}
+                {it.saldo && (
+                  <span
+                    className={cn(
+                      "rounded-pill px-1.5 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide",
+                      credito ? "bg-success/15 text-success" : "bg-surface-3 text-text-soft"
+                    )}
+                  >
+                    {credito ? "crédito" : "saldo"}
+                  </span>
+                )}
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-text-soft">{it.desc}</p>
             </div>
@@ -844,10 +941,10 @@ function Acordeao({
                 <span
                   className={cn(
                     "block text-sm font-black tabular-nums",
-                    p ? "text-success" : "text-text"
+                    p || credito ? "text-success" : "text-text"
                   )}
                 >
-                  {brl(it.valor)}
+                  {credito ? `−${brl(-it.valor)}` : brl(it.valor)}
                 </span>
                 {it.tokens && (
                   <span className="block text-[0.6rem] font-semibold text-muted">
