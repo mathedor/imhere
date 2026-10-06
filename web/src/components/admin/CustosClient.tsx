@@ -30,6 +30,7 @@ import {
 } from "@/lib/custos/data";
 import {
   EVENTO_PAGAMENTOS,
+  avisarPagamentos,
   devMesesComAna,
   mesesAteHoje,
   nomeDoMes,
@@ -122,12 +123,15 @@ export function CustosClient({
   mesCorrente,
   entregasAna,
   saldosIniciais,
+  marcar,
 }: {
   contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null;
   mesCorrente: string;
   entregasAna: EntregaDaAna[];
   /** saldos da Ana (GET /api/custos-pagamentos) — redesenha com a resposta de cada baixa */
   saldosIniciais: SaldoAna[];
+  /** baixa do mês na Ana (server action — o token fica no servidor) */
+  marcar: (tipo: "custos" | "dev", mes: string, pago: boolean) => Promise<PagamentosAna | null>;
 }) {
   /* meses de contas até o corrente (o que falta no arquivo nasce aqui) e o
      desenvolvimento com as tarefas da Ana — src/lib/custos/meses.ts */
@@ -144,11 +148,30 @@ export function CustosClient({
     window.addEventListener(EVENTO_PAGAMENTOS, ouvir);
     return () => window.removeEventListener(EVENTO_PAGAMENTOS, ouvir);
   }, []);
+  /* mês só com saldo (nenhuma entrega nele): o botão do mês dá a baixa direto
+     na Ana — ela aceita o mês pelo saldo (ana 2d60223) — e redesenha com a
+     resposta; o quadro de pagamentos lá em cima também */
+  const [baixando, setBaixando] = useState<string | null>(null);
+  function baixarSaldo(g: Grupo) {
+    if (!g.ym || baixando) return;
+    const tipo = g.coluna === "meses" ? "custos" : "dev";
+    const quitado = g.itens.every((it) => it.saldo?.pago);
+    setBaixando(g.key);
+    void marcar(tipo, g.ym, !quitado)
+      .then((r) => {
+        if (r) {
+          setSaldos(r.saldos);
+          avisarPagamentos(r);
+        }
+      })
+      .finally(() => setBaixando(null));
+  }
   const [estado, setEstado] = useState<EstadoMap>({});
   const [custom, setCustom] = useState<CustoManual[]>([]);
   const [aberto, setAberto] = useState<Record<string, boolean>>(() => ({
     [mesesAteHoje(mesCorrente)[0].key]: true,
     [devMesesComAna(entregasAna)[0]?.key ?? "dev"]: true,
+    [`dev-saldo-${mesCorrente}`]: true,   // mês corrente só com saldo já abre
   }));
   const [modal, setModal] = useState(false);
   const [pronto, setPronto] = useState(false);
@@ -562,6 +585,8 @@ export function CustosClient({
               pago={pago}
               onItem={alternarItem}
               onGrupo={() => alternarGrupo(g)}
+              onSaldo={() => baixarSaldo(g)}
+              ocupado={baixando === g.key}
             />
           ))}
 
@@ -788,6 +813,8 @@ function Acordeao({
   pago,
   onItem,
   onGrupo,
+  onSaldo,
+  ocupado,
   onEditar,
   onExcluir,
 }: {
@@ -797,13 +824,20 @@ function Acordeao({
   pago: (id: string) => boolean;
   onItem: (id: string) => void;
   onGrupo: () => void;
+  /** mês só com saldo: baixa direto na Ana */
+  onSaldo?: () => void;
+  ocupado?: boolean;
   onEditar?: (it: LinhaItem) => void;
   onExcluir?: (id: number) => void;
 }) {
   const total = grupo.itens.reduce((s, it) => s + it.valor, 0);
   const pagoTotal = grupo.itens.reduce((s, it) => s + (pagoDaLinha(it, pago) ? it.valor : 0), 0);
-  const soSaldo = grupo.itens.every((it) => it.saldo);
-  const pct = total > 0 ? Math.round((pagoTotal / total) * 100) : 100;
+  /* mês só com saldo: o estado do mês é o do próprio saldo (senão pareceria
+     quitado vazio, ou com crédito) */
+  const soSaldo = grupo.itens.length > 0 && grupo.itens.every((it) => it.saldo);
+  const pct = soSaldo
+    ? (grupo.itens.every((it) => it.saldo?.pago) ? 100 : 0)
+    : total > 0 ? Math.round((pagoTotal / total) * 100) : 100;
   const done = pct >= 100;
   const ehMes = grupo.coluna === "meses";
 
@@ -830,17 +864,18 @@ function Acordeao({
         <span className="text-[0.68rem] font-bold tabular-nums text-muted">
           {brl(pagoTotal)} de {brl(total)} pagos
         </span>
-        {!soSaldo && <button
+        {(!soSaldo || onSaldo) && <button
           type="button"
-          onClick={onGrupo}
+          onClick={soSaldo ? onSaldo : onGrupo}
+          disabled={soSaldo && ocupado}
           className={cn(
-            "rounded-pill border px-3 py-1 text-[0.68rem] font-bold transition-colors",
+            "rounded-pill border px-3 py-1 text-[0.68rem] font-bold transition-colors disabled:opacity-50",
             done
               ? "border-border bg-transparent text-muted hover:border-muted"
               : "border-success/50 bg-success/10 text-success hover:bg-success/20"
           )}
         >
-          {done ? "Desmarcar tudo" : `Marcar ${ehMes ? "mês" : "tudo"} como pago`}
+          {soSaldo && ocupado ? "…" : done ? "Desmarcar tudo" : `Marcar ${ehMes || soSaldo ? "mês" : "tudo"} como pago`}
         </button>}
       </div>
 

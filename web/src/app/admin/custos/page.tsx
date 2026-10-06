@@ -35,13 +35,14 @@ export default async function CustosPage() {
 
     <>
 
-      <PagamentosAna inicial={pagamentosNaAna} marcar={marcarPagamentoNaAna} />
+      <PagamentosAna inicial={pagamentosNaAna} marcar={marcarPagamentoNaAna} mesCorrente={mesCorrente} />
 
       <CustosClient
         contasReais={contasReais}
         mesCorrente={mesCorrente}
         entregasAna={entregasAna}
         saldosIniciais={pagamentosNaAna.saldos}
+        marcar={marcarPagamentoNaAna}
       />
 
     </>
