@@ -13,7 +13,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Field, Input, Select, Textarea } from "@/components/Field";
 import {
   ANUAIS,
@@ -30,6 +30,7 @@ import {
 } from "@/lib/custos/data";
 import {
   EVENTO_PAGAMENTOS,
+  aplicarPagosDaAna,
   avisarPagamentos,
   devMesesComAna,
   mesesAteHoje,
@@ -122,14 +123,14 @@ export function CustosClient({
   contasReais,
   mesCorrente,
   entregasAna,
-  saldosIniciais,
+  pagosAna,
   marcar,
 }: {
   contasReais: { nome: string; valor: number; obs: string; estimado: boolean }[] | null;
   mesCorrente: string;
   entregasAna: EntregaDaAna[];
-  /** saldos da Ana (GET /api/custos-pagamentos) — redesenha com a resposta de cada baixa */
-  saldosIniciais: SaldoAna[];
+  /** estado da Ana (GET /api/custos-pagamentos): meses pagos e saldos — o ✓ daqui é o dela */
+  pagosAna: PagamentosAna;
   /** baixa do mês na Ana (server action — o token fica no servidor) */
   marcar: (tipo: "custos" | "dev", mes: string, pago: boolean) => Promise<PagamentosAna | null>;
 }) {
@@ -138,16 +139,7 @@ export function CustosClient({
   const meses = useMemo(() => mesesAteHoje(mesCorrente), [mesCorrente]);
   const devMeses = useMemo(() => devMesesComAna(entregasAna), [entregasAna]);
   const pedidos = useMemo(() => pedidosDaAnaPorMes(entregasAna), [entregasAna]);
-  const [saldos, setSaldos] = useState<SaldoAna[]>(saldosIniciais);
-  useEffect(() => {
-    /* baixa dada no quadro de pagamentos: a Ana devolve os saldos atualizados */
-    const ouvir = (ev: Event) => {
-      const d = (ev as CustomEvent<PagamentosAna>).detail;
-      if (d && Array.isArray(d.saldos)) setSaldos(d.saldos);
-    };
-    window.addEventListener(EVENTO_PAGAMENTOS, ouvir);
-    return () => window.removeEventListener(EVENTO_PAGAMENTOS, ouvir);
-  }, []);
+  const [saldos, setSaldos] = useState<SaldoAna[]>(pagosAna.saldos ?? []);
   /* mês só com saldo (nenhuma entrega nele): o botão do mês dá a baixa direto
      na Ana — ela aceita o mês pelo saldo (ana 2d60223) — e redesenha com a
      resposta; o quadro de pagamentos lá em cima também */
@@ -160,6 +152,7 @@ export function CustosClient({
     void marcar(tipo, g.ym, !quitado)
       .then((r) => {
         if (r) {
+          anaRef.current = r;
           setSaldos(r.saldos);
           avisarPagamentos(r);
         }
@@ -168,6 +161,58 @@ export function CustosClient({
   }
   const [estado, setEstado] = useState<EstadoMap>({});
   const [custom, setCustom] = useState<CustoManual[]>([]);
+
+  /* ══ O ✓ DESTE RELATÓRIO TAMBÉM É DA ANA ══ (06/10/2026)
+     As marcações aqui dentro (item a item e "marcar mês como pago") viviam só
+     no navegador — só o quadro de pagamentos lá em cima falava com a Ana.
+     Agora, igual à Antecipaqui: o estado da Ana entra ao abrir; mês que fecha
+     ou reabre aqui, por qualquer caminho, avisa a Ana (erro aparece na tela);
+     e a primeira visita empurra pra lá o mês que este navegador já tinha
+     fechado (migração única, marcada em `<chave>:ana`). Saldo segue travado:
+     a Ana baixa ele junto com o mês. */
+  const [sinc, setSinc] = useState<"quieto" | "indo" | "ok" | "erro">("quieto");
+  const anaRef = useRef<PagamentosAna>(pagosAna);   // o último estado que a Ana devolveu
+  const migrado = useRef(false);
+  const completoRef = useRef<Record<string, boolean> | null>(null);
+  const customRef = useRef<CustoManual[]>([]);
+  useEffect(() => { customRef.current = custom; }, [custom]);
+
+  /** as linhas que o ✓ do mês cobre (a mesma montagem dos grupos, sem saldo) */
+  const chavesDoMes = useCallback((tipo: "custos" | "dev", ym: string, lista: CustoManual[] = customRef.current): string[] => {
+    if (tipo === "dev") return devMeses.find((d) => d.ym === ym)?.itens.map((e) => e.id) ?? [];
+    const m = meses.find((x) => x.ym === ym);
+    if (!m) return [];
+    return [
+      ...m.itens.map((it) => it.id),
+      ...lista.filter((c) => (c.rec ? c.from <= m.ym : c.ym === m.ym)).map((c) => `c${c.id}-${m.key}`),
+    ];
+  }, [meses, devMeses]);
+
+  function avisar(tipo: "custos" | "dev", mes: string, pagoNovo: boolean) {
+    setSinc("indo");
+    void marcar(tipo, mes, pagoNovo).then((r) => {
+      setSinc(r ? "ok" : "erro");
+      if (r) {
+        anaRef.current = r;
+        setSaldos(r.saldos);
+        avisarPagamentos(r);   // o quadro de cima redesenha
+      }
+    });
+  }
+
+  /* baixa dada no quadro de pagamentos (ou a resposta da nossa): o estado da
+     Ana vale aqui também — sem reenviar, porque ela já está assim */
+  useEffect(() => {
+    const ouvir = (ev: Event) => {
+      const d = (ev as CustomEvent<PagamentosAna>).detail;
+      if (!d?.custos || !d?.dev) return;
+      anaRef.current = { ...d, saldos: d.saldos ?? [] };
+      setSaldos(d.saldos ?? []);
+      setEstado((prev) => aplicarPagosDaAna(prev, d, (t, ym) => chavesDoMes(t, ym), true));
+    };
+    window.addEventListener(EVENTO_PAGAMENTOS, ouvir);
+    return () => window.removeEventListener(EVENTO_PAGAMENTOS, ouvir);
+  }, [chavesDoMes]);
   const [aberto, setAberto] = useState<Record<string, boolean>>(() => ({
     [mesesAteHoje(mesCorrente)[0].key]: true,
     [devMesesComAna(entregasAna)[0]?.key ?? "dev"]: true,
@@ -177,14 +222,38 @@ export function CustosClient({
   const [pronto, setPronto] = useState(false);
 
   useEffect(() => {
+    let marcas: EstadoMap = {};
+    let lista: CustoManual[] = [];
     try {
-      setEstado(JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {});
-      setCustom(JSON.parse(localStorage.getItem(STORAGE_KEY_CUSTOM) || "[]") || []);
+      marcas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+      lista = JSON.parse(localStorage.getItem(STORAGE_KEY_CUSTOM) || "[]") || [];
+      migrado.current = localStorage.getItem(`${STORAGE_KEY}:ana`) === "1";
     } catch {
       /* storage indisponível — segue com os valores padrão */
     }
+    /* mês pago na Ana entra marcado, aconteça o que acontecer com este
+       navegador — é o mesmo número pra todo mundo que abre a página */
+    marcas = aplicarPagosDaAna(marcas, pagosAna, (t, ym) => chavesDoMes(t, ym, lista), migrado.current);
+    setEstado(marcas);
+    setCustom(lista);
     setPronto(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(marcas));
+      localStorage.setItem(`${STORAGE_KEY}:ana`, "1");
+    } catch {
+      /* quota / modo privado */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /* marcação que veio da Ana (evento) também fica guardada */
+  useEffect(() => {
+    if (!pronto) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    } catch {
+      /* ignora */
+    }
+  }, [estado, pronto]);
 
   function persistir(next: EstadoMap) {
     setEstado(next);
@@ -290,6 +359,37 @@ export function CustosClient({
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estado, custom, meses, devMeses, saldos]);
+
+  /* mês que fechou (ou reabriu) — item a item ou pelo botão do mês — vira
+     baixa na Ana. A primeira passada só mede a régua (e faz a migração). */
+  useEffect(() => {
+    if (!pronto) return;
+    const atual: Record<string, boolean> = {};
+    for (const g of grupos) {
+      if (!g.ym) continue;
+      const linhas = g.itens.filter((it) => !it.saldo);   // saldo não segura o mês
+      if (!linhas.length) continue;
+      atual[`${g.coluna === "meses" ? "custos" : "dev"}:${g.ym}`] = linhas.every((it) => pago(it.id) || it.valor === 0);
+    }
+    const antes = completoRef.current;
+    completoRef.current = atual;
+    for (const [k, v] of Object.entries(atual)) {
+      const [tipo, mes] = k.split(":") as ["custos" | "dev", string];
+      const la = anaRef.current[tipo][mes];
+      const temSaldo = saldos.some((x) => x.tipo === tipo && x.destino === mes);
+      if (!la && !temSaldo) continue;          // a Ana não tem esse mês: fica só aqui
+      if (!antes) {
+        /* primeira visita depois da ponte: mês fechado neste navegador mas em
+           aberto na Ana é empurrado pra lá. Depois disso, a Ana manda. */
+        if (!migrado.current && v && la && !la.pago) avisar(tipo, mes, true);
+        continue;
+      }
+      if (antes[k] === undefined || antes[k] === v) continue;
+      if (la && la.pago === v) continue;       // veio da Ana: ela já está assim
+      avisar(tipo, mes, v);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grupos, pronto]);
 
   const totais = useMemo(() => {
     let devTotal = 0;
@@ -504,6 +604,13 @@ export function CustosClient({
             {totais.pedidosAbertoN} {totais.pedidosAbertoN === 1 ? "fatura" : "faturas"}).
           </>
         )}
+      </p>
+
+      {/* sincronia com o controle da casa — erro aparece, não some calado */}
+      <p className={cn("-mt-3 mb-5 text-xs leading-relaxed", sinc === "erro" ? "font-bold text-brand" : "text-text-soft")}>
+        {sinc === "erro"
+          ? "Não consegui avisar o controle da Diretório Web — a última marcação valeu só neste navegador. Tente de novo em instantes."
+          : `Mês fechado (ou reaberto) aqui dá baixa direto no controle da Diretório Web${sinc === "indo" ? " — avisando…" : sinc === "ok" ? " — ✓ avisado" : ""}. Marcações parciais e ajustes de valor ficam neste navegador.`}
       </p>
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">

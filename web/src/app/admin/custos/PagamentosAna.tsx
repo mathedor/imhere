@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { PagamentosAna as Estado } from "@/lib/custosAna";
-import { avisarPagamentos } from "@/lib/custos/meses";
+import { EVENTO_PAGAMENTOS, avisarPagamentos } from "@/lib/custos/meses";
 
 /* ══ O QUE JÁ FOI PAGO — E O QUE FALTA ══
    Este quadro não guarda nada aqui dentro: ele mostra as contas deste sistema
@@ -29,6 +29,16 @@ export default function PagamentosAna({ inicial, marcar, mesCorrente }: {
   const [estado, setEstado] = useState<Estado>(inicial);
   const [mexendo, setMexendo] = useState<string | null>(null);
   const [, comecar] = useTransition();
+
+  /* baixa dada de dentro do relatório redesenha aqui também (mesmo número) */
+  useEffect(() => {
+    const ouvir = (ev: Event) => {
+      const d = (ev as CustomEvent<Estado>).detail;
+      if (d?.custos && d?.dev) setEstado({ ...d, saldos: d.saldos ?? [] });
+    };
+    window.addEventListener(EVENTO_PAGAMENTOS, ouvir);
+    return () => window.removeEventListener(EVENTO_PAGAMENTOS, ouvir);
+  }, []);
 
   const saldos = estado.saldos ?? [];
   const meses = Array.from(new Set([

@@ -41,7 +41,7 @@ export default async function CustosPage() {
         contasReais={contasReais}
         mesCorrente={mesCorrente}
         entregasAna={entregasAna}
-        saldosIniciais={pagamentosNaAna.saldos}
+        pagosAna={pagamentosNaAna}
         marcar={marcarPagamentoNaAna}
       />
 

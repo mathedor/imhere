@@ -220,3 +220,28 @@ export function notasDaOrigem(saldos: SaldoAna[], tipo: "dev" | "custos", ym: st
         ? `${reais(s.centavos)} entrou depois do pagamento → saldo em ${nomeDoMes(s.destino)}`
         : `pago ${reais(s.centavos)} abaixo do real → saldo em ${nomeDoMes(s.destino)}`);
 }
+
+/* ── o ✓ do relatório é da Ana (06/10/2026) ──
+   Marcar item a item ou "marcar mês como pago" aqui dentro vivia só no
+   navegador; só o quadro de pagamentos de cima falava com a Ana. Agora o
+   estado do mês na Ana entra nas marcações ao abrir (e a cada baixa): mês pago
+   lá marca todas as linhas daqui; mês reaberto lá desmarca — só depois da
+   migração, pra não apagar marcação feita enquanto a ponte não existia. */
+export function aplicarPagosDaAna<T extends { p?: number }>(
+  marcas: Record<string, T>,
+  ana: Pick<PagamentosAna, "custos" | "dev">,
+  chaves: (tipo: "custos" | "dev", ym: string) => string[],
+  migrado: boolean,
+): Record<string, T> {
+  const out = { ...marcas };
+  for (const tipo of ["custos", "dev"] as const) {
+    for (const [ym, e] of Object.entries(ana[tipo] ?? {})) {
+      if (!e) continue;
+      const ks = chaves(tipo, ym);
+      if (!ks.length) continue;
+      if (e.pago) for (const k of ks) out[k] = { ...out[k], p: 1 };
+      else if (migrado && ks.every((k) => out[k]?.p)) for (const k of ks) out[k] = { ...out[k], p: 0 };
+    }
+  }
+  return out;
+}
